@@ -1,0 +1,1150 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Süper Lig 2026-2027 Tahmin Portalı</title>
+    <!-- Firebase CDN -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <!-- SheetJS (Excel Export) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f0f4f8; margin: 0; padding: 15px; }
+        .container { max-width: 1150px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        h2, h3, h4 { text-align: center; color: #1e293b; margin-top: 0; }
+        
+        .nav-menu { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        .nav-btn { padding: 10px 18px; border: none; background: #e2e8f0; color: #334155; font-weight: bold; border-radius: 6px; cursor: pointer; transition: 0.2s; font-size: 14px; }
+        .nav-btn.active { background: #2563eb; color: white; }
+        .nav-btn-admin { background: #d97706; color: white; }
+        .nav-btn-admin.active { background: #b45309; color: white; }
+
+        /* DİNAMİK SIRALANAN PUAN KARTLARI */
+        .leaderboard-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px; }
+        .card { padding: 12px; border-radius: 8px; color: white; text-align: center; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: all 0.3s ease; }
+        .card-name { font-size: 16px; margin-bottom: 4px; }
+        .card-score { font-size: 22px; margin-top: 2px; }
+        .card-badge { font-size: 12px; background: rgba(0,0,0,0.25); padding: 3px 8px; border-radius: 12px; margin-top: 6px; display: inline-block; font-weight: 600; }
+
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 13px; }
+        th, td { border: 1px solid #cbd5e1; padding: 8px; text-align: center; vertical-align: middle; }
+        th { background-color: #1e293b; color: white; }
+        
+        .team-cell { display: flex; align-items: center; gap: 8px; text-align: left; }
+        .team-logo { width: 22px; height: 22px; object-fit: contain; }
+        
+        .score-inputs { display: flex; align-items: center; justify-content: center; gap: 4px; }
+        .tbl-input { width: 35px; height: 30px; text-align: center; font-weight: bold; border: 1px solid #94a3b8; border-radius: 4px; font-size: 14px; }
+        
+        button { cursor: pointer; border: none; font-weight: bold; border-radius: 4px; }
+        .btn-submit { background-color: #16a34a; color: white; padding: 12px 20px; font-size: 15px; width: 100%; margin-top: 10px; border-radius: 6px; }
+        .btn-submit:disabled { background-color: #94a3b8; cursor: not-allowed; }
+        .btn-excel { background-color: #1d6f42; color: white; padding: 8px 12px; font-size: 12px; }
+        
+        .admin-panel { background: #fffbeb; border: 2px dashed #f59e0b; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+        .hidden { display: none !important; }
+        .status-badge { display: inline-block; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: bold; margin-bottom: 5px; }
+        .status-open { background: #dcfce7; color: #15803d; }
+        .status-locked { background: #fee2e2; color: #b91c1c; }
+        .logout-btn { background-color: #ef4444; color: white; padding: 8px 12px; font-size: 12px; margin-top: 15px; }
+        .winner-tag { background: #fef08a; color: #854d0e; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 11px; }
+
+        /* MODAL STİLLERİ */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); display: flex; justify-content: center; align-items: center; z-index: 1000; }
+        .modal-box { background: white; padding: 25px; border-radius: 10px; max-width: 400px; width: 90%; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+        .modal-box p { font-weight: bold; font-size: 15px; color: #1e293b; margin-bottom: 20px; line-height: 1.4; }
+        .modal-buttons { display: flex; justify-content: space-between; gap: 15px; }
+        .btn-duzelt { background-color: #64748b; color: white; padding: 10px 20px; font-size: 14px; flex: 1; border-radius: 6px; }
+        .btn-tamam { background-color: #16a34a; color: white; padding: 10px 20px; font-size: 14px; flex: 1; border-radius: 6px; }
+        .modal-input { width: 100%; padding: 10px; margin: 8px 0; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; box-sizing: border-box; }
+
+        /* PUAN KURALLARI STİLİ */
+        .rule-card { background: #f8fafc; border-left: 5px solid #2563eb; padding: 15px; margin-bottom: 15px; border-radius: 0 8px 8px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .rule-card h4 { text-align: left; margin: 0 0 8px 0; color: #1e293b; font-size: 16px; }
+        .rule-card p { margin: 0; font-size: 14px; color: #475569; line-height: 1.5; }
+        .rule-badge { display: inline-block; background: #dbeafe; color: #1e40af; font-weight: bold; padding: 3px 8px; border-radius: 4px; font-size: 12px; margin-right: 5px; }
+
+        /* GRAFİK KONTROL KARTLARI */
+        .chart-card { background: #ffffff; border: 1px solid #e2e8f0; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-top: 25px; }
+        
+        /* BİRİNCİLİK LİDERLİK SIRALAMA LİSTESİ */
+        .ranking-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+        .ranking-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; border-radius: 6px; color: white; font-weight: bold; font-size: 15px; }
+    </style>
+</head>
+<body>
+
+<!-- GİRİŞ EKRANI -->
+<div class="container" id="loginScreen" style="max-width:400px; margin-top: 50px;">
+    <h2>🏆 Süper Lig Tahmin Portalı</h2>
+    <div>
+        <label><b>Kullanıcı Seçin:</b></label>
+        <select id="loginUser" style="width:100%; margin: 8px 0 15px 0; padding: 10px; border-radius:6px; border:1px solid #ccc; font-size:14px;">
+            <option value="">-- İsminizi Seçin --</option>
+            <option value="Yonetici">Yönetici (Admin)</option>
+            <option value="Umut">Umut</option>
+            <option value="ibrahim">ibrahim</option>
+            <option value="Özkan">Özkan</option>
+            <option value="Onur">Onur</option>
+        </select>
+
+        <label><b>Şifre:</b></label>
+        <input type="password" id="loginPass" placeholder="Şifrenizi Girin" style="width:100%; margin: 8px 0 15px 0; padding: 10px; border-radius:6px; border:1px solid #ccc; font-size:14px;">
+        
+        <button type="button" onclick="login()" style="width:100%; padding:12px; font-size: 15px; background:#2563eb; color:white;">Giriş Yap</button>
+    </div>
+</div>
+
+<!-- ŞİFRE DEĞİŞTİRME MODALI -->
+<div id="changePasswordModal" class="modal-overlay hidden">
+    <div class="modal-box">
+        <h3>🔒 Şifrenizi Oluşturun</h3>
+        <p style="font-size: 13px; font-weight: normal; color: #475569; margin-bottom: 15px;">
+            Lütfen kendinize özel yeni bir şifre belirleyin.
+        </p>
+        <input type="password" id="newPass1" class="modal-input" placeholder="Yeni Şifre">
+        <input type="password" id="newPass2" class="modal-input" placeholder="Yeni Şifre (Tekrar)">
+        <button type="button" onclick="saveNewPassword()" class="btn-submit" style="margin-top: 15px;">🔑 Şifremi Kaydet</button>
+    </div>
+</div>
+
+<!-- ANA UYGULAMA EKRANI -->
+<div class="container hidden" id="mainScreen">
+    <div style="overflow: hidden; margin-bottom: 15px;">
+        <h2 id="welcomeMsg" style="float: left; margin:0;"></h2>
+        <button type="button" class="btn-excel" onclick="exportToExcel()" style="float: right;">📥 Excel İndir</button>
+    </div>
+
+    <!-- DINAMIK PUAN VE BİRİNCİLİK KARTLARI -->
+    <div class="leaderboard-grid" id="leaderboardGrid"></div>
+
+    <!-- ADMİN PANELİ -->
+    <div id="adminPanel" class="admin-panel hidden">
+        <h4 style="color:#b45309; margin-bottom:10px;">⚙️ Admin Kontrol Paneli</h4>
+        
+        <div style="display:flex; gap:15px; flex-wrap:wrap; align-items:center; justify-content:space-between; margin-bottom:12px;">
+            <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+                <div>
+                    <label style="font-size:13px;"><b>Aktif Hafta:</b></label>
+                    <select id="adminAktifHafta" style="padding:4px;"></select>
+                </div>
+                <div>
+                    <label style="font-size:13px;"><b>Son Tahmin Tarihi:</b></label>
+                    <input type="datetime-local" id="adminKilitTarihi" style="padding:3px;">
+                </div>
+                <button type="button" onclick="adminHaftaGuncelle()" style="background:#d97706; color:white; padding:6px 12px;">Kaydet</button>
+            </div>
+            <div>
+                <button type="button" onclick="resetTestData()" style="background:#ef4444; color:white; padding:6px 12px;" title="Tüm oyuncu tahminlerini ve onaylarını sıfırlar">🧹 Test Verilerini Temizle</button>
+            </div>
+        </div>
+
+        <div style="padding-top: 10px; border-top: 1px dashed #f59e0b; display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+            <label style="font-size:13px;"><b>🔑 Oyuncu Şifresi Sıfırla:</b></label>
+            <select id="resetUserSelect" style="padding:5px; border-radius:4px; border:1px solid #ccc;">
+                <option value="Umut">Umut</option>
+                <option value="ibrahim">ibrahim</option>
+                <option value="Özkan">Özkan</option>
+                <option value="Onur">Onur</option>
+            </select>
+            <button type="button" onclick="adminSifreSifirla()" style="background:#2563eb; color:white; padding:6px 12px; font-size:12px; border-radius:4px;">Şifreyi Sıfırla (1234 Yap)</button>
+        </div>
+    </div>
+
+    <!-- MENÜ -->
+    <div class="nav-menu">
+        <button class="nav-btn active" id="btnPage1" onclick="switchPage(1)">1. Tahmin Girişi</button>
+        <button class="nav-btn" id="btnPage2" onclick="switchPage(2)">2. Canlı Skorlar</button>
+        <button class="nav-btn" id="btnPage5" onclick="switchPage(5)">📊 Haftalık Özet Puanlar</button>
+        <button class="nav-btn" id="btnPage3" onclick="switchPage(3)">3. Sezon Arşivi</button>
+        <button class="nav-btn" id="btnPage6" onclick="switchPage(6)">📜 Puan Kuralları</button>
+        <button class="nav-btn nav-btn-admin hidden" id="btnPage4" onclick="switchPage(4)">4. Admin Skor Giriş</button>
+    </div>
+
+    <!-- SAYFA 1: TAHMİN GİRİŞİ -->
+    <div id="page1" class="page-content">
+        <div style="text-align: center; margin-bottom: 15px;">
+            <h3 id="p1Title" style="margin-bottom: 5px;">Aktif Hafta Tahminleriniz</h3>
+            <div id="p1Status"></div>
+            <div id="p1Timer" style="font-size: 14px; font-weight: bold; color: #d97706; margin-top: 5px;"></div>
+        </div>
+        <div>
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 40%;">Ev Sahibi</th>
+                        <th style="width: 20%;">Skor</th>
+                        <th style="width: 40%;">Deplasman</th>
+                    </tr>
+                </thead>
+                <tbody id="p1TableBody"></tbody>
+            </table>
+            <button type="button" id="btnSubmitP1" onclick="onayKutusunuAc()" class="btn-submit">💾 Tahminlerimi Kaydet</button>
+        </div>
+    </div>
+
+    <!-- SAYFA 2: CANLI SKORLAR VE DİNAMİK GRAFİK -->
+    <div id="page2" class="page-content hidden">
+        <h3 id="p2Title" style="text-align:center;">Aktif Hafta Canlı Tahmin Tablosu</h3>
+        <p style="text-align:center; font-size:12px; color:gray; margin-top:-5px;">Tahminlerinizi kaydedip onayladıktan sonra canlı skorları ve oyuncu puanlarını takip edebilirsiniz.</p>
+        <table>
+            <thead>
+                <tr>
+                    <th rowspan="2">Ev Sahibi</th>
+                    <th rowspan="2">Gerçek</th>
+                    <th rowspan="2">Deplasman</th>
+                    <th colspan="2" style="background:#e67e22;">Umut</th>
+                    <th colspan="2" style="background:#c0392b;">ibrahim</th>
+                    <th colspan="2" style="background:#1a252f;">Özkan</th>
+                    <th colspan="2" style="background:#d4ac0d; color:#2c3e50;">Onur</th>
+                </tr>
+                <tr>
+                    <th>T</th><th>P</th>
+                    <th>T</th><th>P</th>
+                    <th>T</th><th>P</th>
+                    <th>T</th><th>P</th>
+                </tr>
+            </thead>
+            <tbody id="p2TableBody"></tbody>
+        </table>
+
+        <!-- HAFTALIK DİNAMİK PUAN GRAFİĞİ -->
+        <div class="chart-card">
+            <h4 id="chartTitle" style="margin-bottom:15px; color:#1e293b;">📊 Aktif Hafta Puan Dağılımı</h4>
+            <div style="position: relative; height: 300px; width: 100%;">
+                <canvas id="weeklyChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- SAYFA 5: HAFTALIK ÖZET PUANLAR VE HAFTANIN BİRİNCİSİ GRAFİĞİ -->
+    <div id="page5" class="page-content hidden">
+        <h3 style="text-align:center; margin-bottom:5px;">📅 Haftalık Toplam Tahmin Puanları</h3>
+        <p style="text-align:center; font-size:12px; color:gray; margin-bottom:15px;">Tahmin girmediğiniz haftalarda diğer oyuncuların puanları kilitli görünür.</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Hafta</th>
+                    <th style="background:#e67e22;">Umut</th>
+                    <th style="background:#c0392b;">ibrahim</th>
+                    <th style="background:#1a252f;">Özkan</th>
+                    <th style="background:#d4ac0d; color:#2c3e50;">Onur</th>
+                    <th style="background:#2563eb;">👑 Haftanın Birincisi</th>
+                </tr>
+            </thead>
+            <tbody id="p5TableBody"></tbody>
+        </table>
+
+        <!-- HAFTA BİRİNCİLİKLERİ SIRALAMA PANELDEN OLUŞAN ALAN -->
+        <div class="chart-card">
+            <h4 style="margin-bottom:5px; color:#1e293b;">👑 Toplam Hafta Birincilikleri (Şampiyonluk Sıralaması)</h4>
+            <p style="text-align:center; font-size:12px; color:gray; margin-bottom:20px;">En yüksek puan alarak haftayı 1. bitiren oyunculara <b>+1 Birincilik Rozeti</b> eklenir. Eşitlik durumunda tüm 1. olanlara +1 eklenir.</p>
+            
+            <div id="winnerRankingList" class="ranking-list"></div>
+
+            <div style="position: relative; height: 280px; width: 100%; margin-top:20px;">
+                <canvas id="winnerChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- SAYFA 3: TÜM HAFTALAR -->
+    <div id="page3" class="page-content hidden">
+        <div style="margin-bottom: 15px; display:flex; align-items:center; gap:10px;">
+            <label><b>Hafta Filtrele:</b></label>
+            <select id="p3HaftaFilter" onchange="renderPage3()" style="padding:5px;"></select>
+        </div>
+        <table id="excelTable">
+            <thead>
+                <tr>
+                    <th rowspan="2">Ha</th>
+                    <th rowspan="2">Ev Sahibi</th>
+                    <th rowspan="2">Deplasman</th>
+                    <th rowspan="2">Gerçek</th>
+                    <th colspan="2" style="background:#e67e22;">Umut</th>
+                    <th colspan="2" style="background:#c0392b;">ibrahim</th>
+                    <th colspan="2" style="background:#1a252f;">Özkan</th>
+                    <th colspan="2" style="background:#d4ac0d; color:#2c3e50;">Onur</th>
+                </tr>
+                <tr>
+                    <th>T</th><th>P</th>
+                    <th>T</th><th>P</th>
+                    <th>T</th><th>P</th>
+                    <th>T</th><th>P</th>
+                </tr>
+            </thead>
+            <tbody id="p3TableBody"></tbody>
+        </table>
+    </div>
+
+    <!-- SAYFA 6: PUANLAMA KURALLARI -->
+    <div id="page6" class="page-content hidden">
+        <h3 style="margin-bottom:20px; color:#1e293b;">📋 Liderlik Portalı Puanlama Sistemi</h3>
+        
+        <div class="rule-card">
+            <h4><span class="rule-badge">1. STANDART MAÇLAR</span> Normal Karşılaşmalar</h4>
+            <p><strong>• Doğru Taraf / Kazananı Bilmek:</strong> 1 Puan<br>
+               <strong>• Tam Skoru Bilmek:</strong> 4 Puan</p>
+        </div>
+
+        <div class="rule-card" style="border-left-color: #d97706;">
+            <h4><span class="rule-badge" style="background:#fef3c7; color:#b45309;">2. SÜRPRİZ BONUS</span> 3 Büyüklerin Puan Kayıpları</h4>
+            <p><strong>Galatasaray, Fenerbahçe veya Beşiktaş</strong>'ın diğer takımlarla oynadığı maçlarda puan kaybı yapacağını (Beraberlik veya Mağlubiyet) tahmin edip bilenlere <strong>+3 Bonus Puan</strong> verilir:<br>
+               <strong>• Taraf + Puan Kaybı Sürprizi:</strong> 1 + 3 = <strong>4 Puan</strong><br>
+               <strong>• Tam Skor + Puan Kaybı Sürprizi:</strong> 4 + 3 = <strong>7 Puan</strong></p>
+        </div>
+
+        <div class="rule-card" style="border-left-color: #dc2626;">
+            <h4><span class="rule-badge" style="background:#fee2e2; color:#991b1b;">3. DERBİ MAÇLARI</span> 3 Büyüklerin Kendi Aralarındaki Maçlar</h4>
+            <p>Galatasaray, Fenerbahçe ve Beşiktaş'ın kendi aralarında oynadığı dev derbilerde puanlar özel katsayı ile hesaplanır:<br>
+               <strong>• Derbi Sonucunu/Tarafını Bilmek:</strong> 4 Puan<br>
+               <strong>• Derbi Tam Skorunu Bilmek:</strong> 7 Puan</p>
+        </div>
+    </div>
+
+    <!-- SAYFA 4: ADMİN -->
+    <div id="page4" class="page-content hidden">
+        <div style="text-align: center; margin-bottom: 15px;">
+            <h3 style="color:#b45309; margin-bottom: 5px;">⚽ Gerçek Maç Sonuçları Giriş Paneli</h3>
+            <div style="display:inline-block; margin-top:5px;">
+                <label><b>Hafta Seçin:</b></label>
+                <select id="p4HaftaFilter" onchange="renderPage4()" style="padding:5px; margin-left:5px;"></select>
+            </div>
+        </div>
+        <div>
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 40%;">Ev Sahibi</th>
+                        <th style="width: 20%;">Gerçek Skor</th>
+                        <th style="width: 40%;">Deplasman</th>
+                    </tr>
+                </thead>
+                <tbody id="p4TableBody"></tbody>
+            </table>
+            <button type="button" onclick="submitGercekSkorlar()" class="btn-submit" style="background-color: #d97706;">💾 Gerçek Skorları Kaydet</button>
+        </div>
+    </div>
+
+    <button type="button" class="logout-btn" onclick="logout()">Çıkış Yap</button>
+</div>
+
+<!-- ÖZEL ONAY PENCERESİ (MODAL) -->
+<div id="confirmModal" class="modal-overlay hidden">
+    <div class="modal-box">
+        <p>Tamam tuşuna basarsanız skorları tekrar değiştiremez düzeltemezsiniz</p>
+        <div class="modal-buttons">
+            <button type="button" class="btn-duzelt" onclick="onayKutusunuKapat()">Düzelt</button>
+            <button type="button" class="btn-tamam" onclick="submitTahminler()">Tamam</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyDCEc42FNaoh6cdIu8bkSG_aaQ_RnfHceU",
+        authDomain: "superligtahmin-db428.firebaseapp.com",
+        databaseURL: "https://superligtahmin-db428-default-rtdb.firebaseio.com",
+        projectId: "superligtahmin-db428",
+        storageBucket: "superligtahmin-db428.firebasestorage.app",
+        messagingSenderId: "679504886700",
+        appId: "1:679504886700:web:4d31c067938e8c1edb5809"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    const takimLogolari = {
+        "Alanyaspor": "https://ssl.gstatic.com/onebox/media/sports/logos/optimized/md9O0STrEeOCrs7txX4sMA_500x500.png",
+        "Amed": "https://images.weserv.nl/?url=upload.wikimedia.org/wikipedia/tr/0/03/Amed_SFK_logo.png",
+        "Beşiktaş": "https://ssl.gstatic.com/onebox/media/sports/logos/optimized/WLe9Xg7ka5F3k1Q2Wq3eOA_500x500.png",
+        "Çaykur Rizespor": "https://ssl.gstatic.com/onebox/media/sports/logos/optimized/KiNTeyPNWHfM6a_qusw4Qg_500x500.png",
+        "Çorum FK": "https://images.weserv.nl/?url=upload.wikimedia.org/wikipedia/tr/8/87/%C3%87orum_FK_logo.png",
+        "Erzurumspor FK": "https://ssl.gstatic.com/onebox/media/sports/logos/optimized/JG70ldrcUyJkLmPLeQyEHw_500x500.png",
+        "Eyüpspor": "https://images.weserv.nl/?url=upload.wikimedia.org/wikipedia/tr/a/a2/Ey%C3%BCpspor_Logo.png",
+        "Fenerbahçe": "https://ssl.gstatic.com/onebox/media/sports/logos/optimized/HOQreZgFrmtQiLi8HKb9zA_500x500.png",
+        "Galatasaray": "https://ssl.gstatic.com/onebox/media/sports/logos/optimized/TWjoccvTU4JXZJZ3aW3cVg_500x500.png",
+        "Gaziantep FK": "https://images.weserv.nl/?url=upload.wikimedia.org/wikipedia/tr/b/bb/Gaziantep_FK.png",
+        "Gençlerbirliği": "https://ssl.gstatic.com/onebox/media/sports/logos/optimized/Uso17CX-1FSK7s5R0J5ldA_500x500.png",
+        "Göztepe": "https://ssl.gstatic.com/onebox/media/sports/logos/optimized/vjtcQOabVkCAP2lNGRLVlQ_500x500.png",
+        "Kasımpaşa": "https://ssl.gstatic.com/onebox/media/sports/logos/optimized/7zFWZCjDqsK7TH4BxZcdfA_500x500.png",
+        "Kocaelispor": "https://images.weserv.nl/?url=upload.wikimedia.org/wikipedia/tr/4/4b/Kocaelispor_logo.png",
+        "Konyaspor": "https://ssl.gstatic.com/onebox/media/sports/logos/optimized/GI8KXqt_7nrWNszUh2mC-A_500x500.png",
+        "Samsunspor": "https://ssl.gstatic.com/onebox/media/sports/logos/optimized/lF7bCDr-Ai-fCbNZnfcxyA_500x500.png",
+        "Trabzonspor": "https://ssl.gstatic.com/onebox/media/sports/logos/optimized/rQs-vhZVYO9BbP4nInu3uw_500x500.png",
+        "İstanbul Başakşehir": "https://ssl.gstatic.com/onebox/media/sports/logos/optimized/b_G6FYhPyTa_WdhdikiqyA_500x500.png"
+    };
+
+    const big3 = ["Galatasaray", "Fenerbahçe", "Beşiktaş"];
+    const oyuncular = ["Umut", "ibrahim", "Özkan", "Onur"];
+    const oyuncuRenkleri = {
+        "Umut": "linear-gradient(135deg, #f39c12, #e67e22)",
+        "ibrahim": "linear-gradient(135deg, #e74c3c, #c0392b)",
+        "Özkan": "linear-gradient(135deg, #34495e, #1a252f)",
+        "Onur": "linear-gradient(135deg, #f1c40f, #d4ac0d)"
+    };
+    const oyuncuTekRenk = {
+        "Umut": "#e67e22",
+        "ibrahim": "#c0392b",
+        "Özkan": "#1a252f",
+        "Onur": "#d4ac0d"
+    };
+    
+    const varsayilanSifreler = {
+        "Yonetici": { sifre: "admin123", sifreDegisti: true },
+        "Umut": { sifre: "1234", sifreDegisti: false },
+        "ibrahim": { sifre: "1234", sifreDegisti: false },
+        "Özkan": { sifre: "1234", sifreDegisti: false },
+        "Onur": { sifre: "1234", sifreDegisti: false }
+    };
+
+    let currentUser = "";
+    let dbMaclar = {};
+    let dbTahminler = {};
+    let dbAyarlar = { aktifHafta: "1. Hafta", kilitTarihi: "" };
+    let dbOnaylar = {};
+    let timerInterval = null;
+    let myChart = null;
+    let winnerChartInstance = null;
+
+    function login() {
+        const user = document.getElementById('loginUser').value;
+        const pass = document.getElementById('loginPass').value.trim();
+
+        if (!user) { alert("Lütfen bir kullanıcı seçin!"); return; }
+
+        db.ref('sifreler').once('value').then(snapshot => {
+            let sifreData = snapshot.val();
+            if (!sifreData) {
+                db.ref('sifreler').set(varsayilanSifreler);
+                sifreData = varsayilanSifreler;
+            }
+
+            const uData = sifreData[user] || varsayilanSifreler[user];
+
+            if (uData && pass === uData.sifre) {
+                currentUser = user;
+                if (!uData.sifreDegisti && user !== "Yonetici") {
+                    document.getElementById('changePasswordModal').classList.remove('hidden');
+                } else {
+                    basariliGiris();
+                }
+            } else {
+                alert("Şifre hatalı!");
+            }
+        });
+    }
+
+    function saveNewPassword() {
+        const p1 = document.getElementById('newPass1').value.trim();
+        const p2 = document.getElementById('newPass2').value.trim();
+
+        if (p1 === "" || p2 === "") { alert("Lütfen iki şifre alanını da doldurun!"); return; }
+        if (p1 !== p2) { alert("Şifreler birbiriyle eşleşmiyor!"); return; }
+        if (p1.length < 4) { alert("Şifreniz en az 4 karakter olmalıdır!"); return; }
+
+        db.ref(`sifreler/${currentUser}`).set({
+            sifre: p1,
+            sifreDegisti: true
+        }).then(() => {
+            alert("🔑 Yeni şifreniz başarıyla oluşturuldu!");
+            document.getElementById('changePasswordModal').classList.add('hidden');
+            basariliGiris();
+        }).catch(err => alert("Hata: " + err.message));
+    }
+
+    function basariliGiris() {
+        document.getElementById('loginScreen').classList.add('hidden');
+        document.getElementById('mainScreen').classList.remove('hidden');
+        document.getElementById('welcomeMsg').innerText = "Hoş Geldin, " + currentUser;
+
+        if (currentUser === "Yonetici") {
+            document.getElementById('adminPanel').classList.remove('hidden');
+            document.getElementById('btnPage4').classList.remove('hidden');
+        }
+
+        initApp();
+    }
+
+    function logout() { location.reload(); }
+
+    function initApp() {
+        let ahSelect = document.getElementById('adminAktifHafta');
+        let p3Select = document.getElementById('p3HaftaFilter');
+        let p4Select = document.getElementById('p4HaftaFilter');
+        
+        ahSelect.innerHTML = "";
+        p3Select.innerHTML = '<option value="TUMU">Tüm Haftalar</option>';
+        p4Select.innerHTML = "";
+
+        for(let i=1; i<=34; i++) {
+            ahSelect.innerHTML += `<option value="${i}. Hafta">${i}. Hafta</option>`;
+            p3Select.innerHTML += `<option value="${i}. Hafta">${i}. Hafta</option>`;
+            p4Select.innerHTML += `<option value="${i}. Hafta">${i}. Hafta</option>`;
+        }
+
+        db.ref().on('value', snapshot => {
+            const data = snapshot.val() || {};
+            dbMaclar = data.maclar || {};
+            dbTahminler = data.tahminler || {};
+            dbAyarlar = data.ayarlar || { aktifHafta: "1. Hafta", kilitTarihi: "" };
+            dbOnaylar = data.onaylar || {};
+
+            if(!p4Select.dataset.userChanged) {
+                p4Select.value = dbAyarlar.aktifHafta;
+            }
+
+            updateLeaderboard();
+            renderPage1();
+            renderPage2();
+            renderPage3();
+            renderPage5();
+            if(currentUser === "Yonetici") renderPage4();
+        });
+    }
+
+    function switchPage(pageNum) {
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.page-content').forEach(p => p.classList.add('hidden'));
+
+        document.getElementById(`btnPage${pageNum}`).classList.add('active');
+        document.getElementById(`page${pageNum}`).classList.remove('hidden');
+    }
+
+    function startCountdown() {
+        if (timerInterval) clearInterval(timerInterval);
+
+        timerInterval = setInterval(() => {
+            const timerElem = document.getElementById('p1Timer');
+            if (!timerElem) return;
+
+            if (!dbAyarlar.kilitTarihi) {
+                timerElem.innerText = "";
+                return;
+            }
+
+            const simdi = new Date().getTime();
+            const hedef = new Date(dbAyarlar.kilitTarihi).getTime();
+            const fark = hedef - simdi;
+
+            if (fark <= 0) {
+                clearInterval(timerInterval);
+                timerElem.innerText = "⏳ Kalan Süre: Süre Doldu!";
+                timerElem.style.color = "#dc2626";
+                const btnSubmit = document.getElementById('btnSubmitP1');
+                if(btnSubmit) btnSubmit.classList.add('hidden');
+                return;
+            }
+
+            const gun = Math.floor(fark / (1000 * 60 * 60 * 24));
+            const saat = Math.floor((fark % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const dakika = Math.floor((fark % (1000 * 60 * 60)) / (1000 * 60));
+            const saniye = Math.floor((fark % (1000 * 60)) / 1000);
+
+            let sureMetni = "⏳ Kalan Süre: ";
+            if (gun > 0) sureMetni += `${gun} gün `;
+            sureMetni += `${saat}s ${dakika}d ${saniye}s`;
+
+            timerElem.innerText = sureMetni;
+            timerElem.style.color = "#d97706";
+        }, 1000);
+    }
+
+    function puanHesapla(ev, dep, gE, gD, tE, tD) {
+        const evB = big3.includes(ev);
+        const depB = big3.includes(dep);
+        const derbi = evB && depB;
+
+        const gS = gE > gD ? 1 : (gE < gD ? 2 : 0);
+        const tS = tE > tD ? 1 : (tE < tD ? 2 : 0);
+
+        if (gS !== tS) return 0;
+
+        const skorTam = (gE === tE && gD === tD);
+
+        if (derbi) {
+            return skorTam ? 7 : 4;
+        }
+
+        if (evB || depB) {
+            const bPuanKaybetti = (evB && gS !== 1) || (depB && gS !== 2);
+            if (bPuanKaybetti) {
+                return skorTam ? (4 + 3) : (1 + 3);
+            }
+        }
+
+        return skorTam ? 4 : 1;
+    }
+
+    function getHaftalikVeriler() {
+        let haftalikMatrix = {};
+        for(let i=1; i<=34; i++) {
+            let hName = `${i}. Hafta`;
+            haftalikMatrix[hName] = { "Umut":0, "ibrahim":0, "Özkan":0, "Onur":0, oynandi: false };
+        }
+
+        Object.keys(dbMaclar).forEach(mId => {
+            const m = dbMaclar[mId];
+            if(m.gEv !== "" && m.gEv !== undefined) {
+                haftalikMatrix[m.hafta].oynandi = true;
+                oyuncular.forEach(o => {
+                    if(dbTahminler[mId] && dbTahminler[mId][o]) {
+                        let t = dbTahminler[mId][o];
+                        haftalikMatrix[m.hafta][o] += puanHesapla(m.ev, m.dep, parseInt(m.gEv), parseInt(m.gDep), parseInt(t.ev), parseInt(t.dep));
+                    }
+                });
+            }
+        });
+
+        return haftalikMatrix;
+    }
+
+    // EN ÜSTTEKİ KARTLARI BİRİNCİLİK SAYISINA GÖRE DİNAMİK DİZME
+    function updateLeaderboard() {
+        let toplamPuanlar = { "Umut":0, "ibrahim":0, "Özkan":0, "Onur":0 };
+        let birincilikSayilari = { "Umut":0, "ibrahim":0, "Özkan":0, "Onur":0 };
+        let haftalikMatrix = getHaftalikVeriler();
+
+        for(let i=1; i<=34; i++) {
+            let hName = `${i}. Hafta`;
+            let hData = haftalikMatrix[hName];
+
+            let maxP = -1;
+            oyuncular.forEach(o => {
+                toplamPuanlar[o] += hData[o];
+                if(hData.oynandi && hData[o] > maxP) maxP = hData[o];
+            });
+
+            if(hData.oynandi && maxP > 0) {
+                oyuncular.forEach(o => {
+                    if(hData[o] === maxP) birincilikSayilari[o] += 1;
+                });
+            }
+        }
+
+        // BİRİNCİLİK SAYISINA GÖRE, EŞİTLİKTE TOPLAM PUANA GÖRE BÜYÜKTEN KÜÇÜĞE SIRALA
+        let sortedPlayers = oyuncular.map(o => {
+            return {
+                isim: o,
+                puan: toplamPuanlar[o],
+                birincilik: birincilikSayilari[o],
+                bg: oyuncuRenkleri[o]
+            };
+        }).sort((a, b) => {
+            if (b.birincilik !== a.birincilik) {
+                return b.birincilik - a.birincilik; // En çok birinciliği olan sola
+            }
+            return b.puan - a.puan; // Eşitlikte puanı yüksek olan sola
+        });
+
+        let gridHtml = "";
+        sortedPlayers.forEach(p => {
+            gridHtml += `
+                <div class="card" style="background: ${p.bg};">
+                    <div class="card-name">${p.isim}</div>
+                    <div class="card-score">${p.puan} P</div>
+                    <div class="card-badge">👑 ${p.birincilik} Kez Birinci</div>
+                </div>
+            `;
+        });
+
+        document.getElementById('leaderboardGrid').innerHTML = gridHtml;
+    }
+
+    function renderPage1() {
+        const h = dbAyarlar.aktifHafta;
+        document.getElementById('p1Title').innerText = `${h} Tahmin Paneli`;
+        
+        const simdi = new Date().getTime();
+        const kilitZamani = dbAyarlar.kilitTarihi ? new Date(dbAyarlar.kilitTarihi).getTime() : Infinity;
+        const zamanDoldu = simdi >= kilitZamani;
+
+        const haftaKey = h.replace(/[^a-zA-Z0-9]/g, "");
+        const onayliMi = (dbOnaylar[haftaKey] && dbOnaylar[haftaKey][currentUser]) ? true : false;
+
+        let statusHtml = "";
+        if(zamanDoldu) {
+            statusHtml = `<span class="status-badge status-locked">🔒 Süre Doldu! (Tahmin Değiştirilemez)</span>`;
+        } else if(onayliMi) {
+            statusHtml = `<span class="status-badge status-locked">🔒 Tahminler Kaydedildi ve Kilitlendi</span>`;
+        } else {
+            statusHtml = `<span class="status-badge status-open">🔓 Tahmin Alımı Açık</span>`;
+        }
+        
+        document.getElementById('p1Status').innerHTML = statusHtml;
+
+        let tbody = "";
+        Object.keys(dbMaclar).forEach(mId => {
+            const m = dbMaclar[mId];
+            if(m.hafta === h) {
+                let userEv = (dbTahminler[mId] && dbTahminler[mId][currentUser]) ? dbTahminler[mId][currentUser].ev : "";
+                let userDep = (dbTahminler[mId] && dbTahminler[mId][currentUser]) ? dbTahminler[mId][currentUser].dep : "";
+
+                const evLogo = takimLogolari[m.ev] ? `<img src="${takimLogolari[m.ev]}" class="team-logo">` : '';
+                const depLogo = takimLogolari[m.dep] ? `<img src="${takimLogolari[m.dep]}" class="team-logo">` : '';
+
+                let disabled = (zamanDoldu || onayliMi || currentUser === "Yonetici") ? "disabled" : "";
+
+                tbody += `<tr>
+                    <td><div class="team-cell">${evLogo} <span>${m.ev}</span></div></td>
+                    <td>
+                        <div class="score-inputs">
+                            <input type="number" class="tbl-input p1-input" data-mid="${mId}" data-type="ev" value="${userEv}" ${disabled}>
+                            <span>-</span>
+                            <input type="number" class="tbl-input p1-input" data-mid="${mId}" data-type="dep" value="${userDep}" ${disabled}>
+                        </div>
+                    </td>
+                    <td><div class="team-cell">${depLogo} <span>${m.dep}</span></div></td>
+                </tr>`;
+            }
+        });
+
+        document.getElementById('p1TableBody').innerHTML = tbody;
+        
+        if(zamanDoldu || onayliMi || currentUser === "Yonetici") {
+            document.getElementById('btnSubmitP1').classList.add('hidden');
+        } else {
+            document.getElementById('btnSubmitP1').classList.remove('hidden');
+        }
+
+        startCountdown();
+    }
+
+    function renderPage2() {
+        const h = dbAyarlar.aktifHafta;
+        document.getElementById('p2Title').innerText = `${h} Canlı Tahmin Tablosu`;
+        document.getElementById('chartTitle').innerText = `📊 ${h} Oyuncu Puan Grafik Kıyaslaması`;
+        
+        const simdi = new Date().getTime();
+        const kilitZamani = dbAyarlar.kilitTarihi ? new Date(dbAyarlar.kilitTarihi).getTime() : Infinity;
+        const zamanDoldu = simdi >= kilitZamani;
+        const haftaKey = h.replace(/[^a-zA-Z0-9]/g, "");
+
+        const currentOnayli = (dbOnaylar[haftaKey] && dbOnaylar[haftaKey][currentUser]);
+
+        let tbody = "";
+        let haftalikPuanlar = { "Umut": 0, "ibrahim": 0, "Özkan": 0, "Onur": 0 };
+
+        Object.keys(dbMaclar).forEach(mId => {
+            const m = dbMaclar[mId];
+            if(m.hafta === h) {
+                let gercekEv = (m.gEv !== undefined) ? m.gEv : "";
+                let gercekDep = (m.gDep !== undefined) ? m.gDep : "";
+                let gercekSkor = (gercekEv !== "") ? `${gercekEv}-${gercekDep}` : "-";
+                
+                let playerCols = "";
+                oyuncular.forEach(o => {
+                    let hasPred = (dbTahminler[mId] && dbTahminler[mId][o] && dbTahminler[mId][o].ev !== "" && dbTahminler[mId][o].dep !== "");
+
+                    if(o === currentUser || currentUser === "Yonetici" || currentOnayli || zamanDoldu) {
+                        if(hasPred) {
+                            let t = dbTahminler[mId][o];
+                            let tStr = `${t.ev}-${t.dep}`;
+                            let pStr = "-";
+                            if(gercekEv !== "") {
+                                let calcP = puanHesapla(m.ev, m.dep, parseInt(gercekEv), parseInt(gercekDep), parseInt(t.ev), parseInt(t.dep));
+                                pStr = calcP;
+                                haftalikPuanlar[o] += calcP;
+                            }
+                            playerCols += `<td><b>${tStr}</b></td><td style="font-weight:bold; background:#f8fafc;">${pStr}</td>`;
+                        } else {
+                            playerCols += `<td>-</td><td>-</td>`;
+                        }
+                    } else {
+                        playerCols += `<td style="color:gray; font-size:11px;">🔒</td><td style="color:gray; font-size:11px;">🔒</td>`;
+                    }
+                });
+
+                tbody += `<tr>
+                    <td>${m.ev}</td>
+                    <td style="background:#f1f5f9; font-weight:bold;">${gercekSkor}</td>
+                    <td>${m.dep}</td>
+                    ${playerCols}
+                </tr>`;
+            }
+        });
+        document.getElementById('p2TableBody').innerHTML = tbody;
+
+        renderWeeklyChart(haftalikPuanlar, currentOnayli || zamanDoldu || currentUser === "Yonetici");
+    }
+
+    function renderWeeklyChart(puanlar, gizliAcik) {
+        const ctx = document.getElementById('weeklyChart').getContext('2d');
+        
+        let chartData = oyuncular.map(o => {
+            if (o === currentUser || gizliAcik) {
+                return puanlar[o];
+            } else {
+                return 0;
+            }
+        });
+
+        const bgColors = oyuncular.map(o => oyuncuTekRenk[o]);
+
+        if (myChart) {
+            myChart.destroy();
+        }
+
+        myChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: oyuncular,
+                datasets: [{
+                    label: 'Haftalık Toplanan Puan',
+                    data: chartData,
+                    backgroundColor: bgColors,
+                    borderRadius: 6,
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) { return context.raw + ' Puan'; }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { stepSize: 1, precision: 0 },
+                        grid: { color: '#f1f5f9' }
+                    },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+    }
+
+    function renderPage5() {
+        let haftalikMatrix = getHaftalikVeriler();
+        let tbody = "";
+
+        let birincilikPuanlari = { "Umut": 0, "ibrahim": 0, "Özkan": 0, "Onur": 0 };
+
+        for(let i=1; i<=34; i++) {
+            let hName = `${i}. Hafta`;
+            let hData = haftalikMatrix[hName];
+            let haftaKey = hName.replace(/[^a-zA-Z0-9]/g, "");
+            
+            let currentOnayli = (dbOnaylar[haftaKey] && dbOnaylar[haftaKey][currentUser]);
+
+            let kazananMetni = "-";
+            let maxP = -1;
+
+            if(hData.oynandi) {
+                oyuncular.forEach(o => { if(hData[o] > maxP) maxP = hData[o]; });
+                if(maxP > 0) {
+                    let kazananlar = oyuncular.filter(o => hData[o] === maxP);
+                    kazananMetni = kazananlar.join(", ");
+                    
+                    kazananlar.forEach(k => {
+                        birincilikPuanlari[k] += 1;
+                    });
+                }
+            }
+
+            let cols = "";
+            oyuncular.forEach(o => {
+                let isWinner = hData.oynandi && maxP > 0 && hData[o] === maxP;
+                let bgStyle = isWinner ? 'style="background:#fef9c3; font-weight:bold;"' : '';
+                
+                if(o === currentUser || currentUser === "Yonetici" || currentOnayli) {
+                    cols += `<td ${bgStyle}>${hData[o]} P ${isWinner ? '👑' : ''}</td>`;
+                } else {
+                    cols += `<td style="color:gray; font-size:11px;">🔒 Gizli</td>`;
+                }
+            });
+
+            tbody += `<tr>
+                <td><b>${i}. Hafta</b></td>
+                ${cols}
+                <td><span class="winner-tag">${(currentUser === "Yonetici" || currentOnayli) ? kazananMetni : "🔒 Gizli"}</span></td>
+            </tr>`;
+        }
+
+        document.getElementById('p5TableBody').innerHTML = tbody;
+
+        let sortedWinners = oyuncular.map(o => {
+            return { isim: o, puan: birincilikPuanlari[o], renk: oyuncuTekRenk[o] };
+        }).sort((a, b) => b.puan - a.puan);
+
+        let rankHtml = "";
+        sortedWinners.forEach((item, index) => {
+            let crown = index === 0 && item.puan > 0 ? "🥇 " : (index === 1 && item.puan > 0 ? "🥈 " : (index === 2 && item.puan > 0 ? "🥉 " : ""));
+            rankHtml += `
+                <div class="ranking-item" style="background: ${item.renk}">
+                    <div>${index + 1}. ${crown}${item.isim}</div>
+                    <div>${item.puan} Kez Birinci 🏆</div>
+                </div>
+            `;
+        });
+        document.getElementById('winnerRankingList').innerHTML = rankHtml;
+
+        renderWinnerChart(sortedWinners);
+    }
+
+    function renderWinnerChart(sortedWinners) {
+        const ctx = document.getElementById('winnerChart').getContext('2d');
+
+        const labels = sortedWinners.map(item => item.isim);
+        const data = sortedWinners.map(item => item.puan);
+        const bgColors = sortedWinners.map(item => item.renk);
+
+        if (winnerChartInstance) {
+            winnerChartInstance.destroy();
+        }
+
+        winnerChartInstance = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Toplam Hafta Birinciliği Sayısı',
+                    data: data,
+                    backgroundColor: bgColors,
+                    borderRadius: 6,
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) { return context.raw + ' Kez Hafta Birincisi'; }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        ticks: { stepSize: 1, precision: 0 },
+                        grid: { color: '#f1f5f9' }
+                    },
+                    y: { grid: { display: false } }
+                }
+            }
+        });
+    }
+
+    function renderPage3() {
+        const secilenHafta = document.getElementById('p3HaftaFilter').value;
+        let tbody = "";
+
+        Object.keys(dbMaclar).forEach(mId => {
+            const m = dbMaclar[mId];
+            if(secilenHafta === "TUMU" || m.hafta === secilenHafta) {
+                let gercekEv = (m.gEv !== undefined) ? m.gEv : "";
+                let gercekDep = (m.gDep !== undefined) ? m.gDep : "";
+                let gercekSkor = (gercekEv !== "") ? `${gercekEv}-${gercekDep}` : "-";
+                let haftaKey = m.hafta.replace(/[^a-zA-Z0-9]/g, "");
+                let currentOnayli = (dbOnaylar[haftaKey] && dbOnaylar[haftaKey][currentUser]);
+
+                let playerCols = "";
+                oyuncular.forEach(o => {
+                    let tStr = "-", pStr = "-";
+                    if(dbTahminler[mId] && dbTahminler[mId][o]) {
+                        let t = dbTahminler[mId][o];
+                        tStr = `${t.ev}-${t.dep}`;
+                        if(gercekEv !== "") {
+                            pStr = puanHesapla(m.ev, m.dep, parseInt(gercekEv), parseInt(gercekDep), parseInt(t.ev), parseInt(t.dep));
+                        }
+                    }
+
+                    if(o === currentUser || currentUser === "Yonetici" || currentOnayli) {
+                        playerCols += `<td>${tStr}</td><td style="font-weight:bold; background:#f8fafc;">${pStr}</td>`;
+                    } else {
+                        playerCols += `<td style="color:gray; font-size:11px;">🔒</td><td style="color:gray; font-size:11px;">🔒</td>`;
+                    }
+                });
+
+                tbody += `<tr>
+                    <td>${m.hafta.replace('. Hafta','')}</td>
+                    <td>${m.ev}</td>
+                    <td>${m.dep}</td>
+                    <td style="background:#e2e8f0; font-weight:bold;">${gercekSkor}</td>
+                    ${playerCols}
+                </tr>`;
+            }
+        });
+        document.getElementById('p3TableBody').innerHTML = tbody;
+    }
+
+    function renderPage4() {
+        const p4Select = document.getElementById('p4HaftaFilter');
+        p4Select.dataset.userChanged = "true";
+        const h = p4Select.value;
+        
+        let tbody = "";
+        Object.keys(dbMaclar).forEach(mId => {
+            const m = dbMaclar[mId];
+            if(m.hafta === h) {
+                let gEv = (m.gEv !== undefined) ? m.gEv : "";
+                let gDep = (m.gDep !== undefined) ? m.gDep : "";
+
+                const evLogo = takimLogolari[m.ev] ? `<img src="${takimLogolari[m.ev]}" class="team-logo">` : '';
+                const depLogo = takimLogolari[m.dep] ? `<img src="${takimLogolari[m.dep]}" class="team-logo">` : '';
+
+                tbody += `<tr>
+                    <td><div class="team-cell">${evLogo} <span>${m.ev}</span></div></td>
+                    <td>
+                        <div class="score-inputs">
+                            <input type="number" class="tbl-input p4-input" data-mid="${mId}" data-type="gEv" value="${gEv}">
+                            <span>-</span>
+                            <input type="number" class="tbl-input p4-input" data-mid="${mId}" data-type="gDep" value="${gDep}">
+                        </div>
+                    </td>
+                    <td><div class="team-cell">${depLogo} <span>${m.dep}</span></div></td>
+                </tr>`;
+            }
+        });
+
+        document.getElementById('p4TableBody').innerHTML = tbody;
+    }
+
+    function onayKutusunuAc() {
+        if (!currentUser || currentUser === "Yonetici") {
+            alert("Yönetici hesabı tahmin gönderemez!");
+            return;
+        }
+
+        const simdi = new Date().getTime();
+        const kilitZamani = dbAyarlar.kilitTarihi ? new Date(dbAyarlar.kilitTarihi).getTime() : Infinity;
+        if(simdi >= kilitZamani) {
+            alert("Süre dolduğu için tahmin verilemez!");
+            return;
+        }
+
+        const inputs = document.querySelectorAll('.p1-input');
+        let count = 0;
+        inputs.forEach(inp => {
+            if(inp.value.trim() !== "") count++;
+        });
+
+        if (count === 0) {
+            alert("Lütfen en az bir skor tahmini giriniz!");
+            return;
+        }
+
+        document.getElementById('confirmModal').classList.remove('hidden');
+    }
+
+    function onayKutusunuKapat() {
+        document.getElementById('confirmModal').classList.add('hidden');
+    }
+
+    function submitTahminler() {
+        onayKutusunuKapat();
+
+        const inputs = document.querySelectorAll('.p1-input');
+        let updates = {};
+        const h = dbAyarlar.aktifHafta;
+        const haftaKey = h.replace(/[^a-zA-Z0-9]/g, "");
+
+        inputs.forEach(inp => {
+            const mId = inp.dataset.mid;
+            const type = inp.dataset.type;
+            const val = inp.value.trim();
+            
+            if(val !== "") {
+                updates[`tahminler/${mId}/${currentUser}/${type}`] = val;
+            }
+        });
+
+        updates[`onaylar/${haftaKey}/${currentUser}`] = true;
+
+        const btn = document.getElementById('btnSubmitP1');
+        if(btn) btn.disabled = true;
+
+        db.ref().update(updates)
+            .then(() => {
+                alert("✅ Tahminleriniz başarıyla kaydedildi ve kilitlendi.");
+                if(btn) btn.disabled = false;
+            })
+            .catch(err => {
+                console.error("Firebase Hatası:", err);
+                alert("Veritabanı Kayıt Hatası: " + err.message);
+                if(btn) btn.disabled = false;
+            });
+    }
+
+    function submitGercekSkorlar() {
+        const onay = confirm("Girilen gerçek maç skorlarını kaydetmek istediğinize emin misiniz?");
+        if (!onay) return;
+
+        const inputs = document.querySelectorAll('.p4-input');
+        let updates = {};
+        
+        inputs.forEach(inp => {
+            const mId = inp.dataset.mid;
+            const type = inp.dataset.type;
+            const val = inp.value.trim();
+            updates[`maclar/${mId}/${type}`] = val;
+        });
+
+        db.ref().update(updates).then(() => {
+            alert("✅ Gerçek maç skorları başarıyla kaydedildi!");
+        }).catch(err => alert("Hata: " + err.message));
+    }
+
+    function adminHaftaGuncelle() {
+        const onay = confirm("Aktif hafta ve kilit tarihini güncellemek istediğinize emin misiniz?");
+        if (!onay) return;
+
+        const h = document.getElementById('adminAktifHafta').value;
+        const kt = document.getElementById('adminKilitTarihi').value;
+        db.ref('ayarlar').update({ aktifHafta: h, kilitTarihi: kt }).then(() => {
+            alert("✅ Aktif hafta bilgileri güncellendi.");
+        });
+    }
+
+    function adminSifreSifirla() {
+        const secilenOyuncu = document.getElementById('resetUserSelect').value;
+        const onay = confirm(`${secilenOyuncu} isimli kullanıcının şifresi '1234' olarak sıfırlanacak. Onaylıyor musunuz?`);
+        
+        if (!onay) return;
+
+        db.ref(`sifreler/${secilenOyuncu}`).set({
+            sifre: "1234",
+            sifreDegisti: false
+        }).then(() => {
+            alert(`✅ ${secilenOyuncu} kullanıcısının şifresi başarıyla '1234' olarak sıfırlandı!`);
+        }).catch(err => {
+            alert("Şifre sıfırlanırken hata oluştu: " + err.message);
+        });
+    }
+
+    function resetTestData() {
+        const onay = confirm("⚠️ TÜM oyuncu tahminleri ve onay kilitleri silinecek. Emin misiniz?");
+        if(!onay) return;
+
+        Promise.all([
+            db.ref('tahminler').remove(),
+            db.ref('onaylar').remove()
+        ]).then(() => {
+            alert("🧹 Test verileri başarıyla temizlendi! Sayfa yenileniyor.");
+            location.reload();
+        }).catch(err => {
+            alert("Sıfırlama sırasında hata oluştu: " + err.message);
+        });
+    }
+
+    function exportToExcel() {
+        const table = document.getElementById("excelTable");
+        const wb = XLSX.utils.table_to_book(table, { sheet: "Süper Lig Tahminleri" });
+        XLSX.writeFile(wb, "Super_Lig_Tahmin_Portali_2026.xlsx");
+    }
+</script>
+</body>
+</html>
