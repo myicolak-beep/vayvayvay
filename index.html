@@ -3,12 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Süper Lig 2026-2027 Tahmin Portalı</title>
+    <title>Süper Lig Tahmin Portalı</title>
     <!-- Firebase CDN -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-    <!-- SheetJS (Excel Export) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -16,10 +14,11 @@
         .container { max-width: 1150px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
         h2, h3, h4 { text-align: center; color: #1e293b; margin-top: 0; }
         
-        .nav-menu { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
-        .nav-btn { padding: 10px 18px; border: none; background: #e2e8f0; color: #334155; font-weight: bold; border-radius: 6px; cursor: pointer; transition: 0.2s; font-size: 14px; }
+        /* 2 SÜTUNLU DERLİ TOPLU MENÜ YAPISI */
+        .nav-menu { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 20px; }
+        .nav-btn { padding: 10px 14px; border: none; background: #e2e8f0; color: #334155; font-weight: bold; border-radius: 6px; cursor: pointer; transition: 0.2s; font-size: 13px; text-align: center; }
         .nav-btn.active { background: #2563eb; color: white; }
-        .nav-btn-admin { background: #d97706; color: white; }
+        .nav-btn-admin { background: #d97706; color: white; grid-column: span 2; }
         .nav-btn-admin.active { background: #b45309; color: white; }
 
         /* DİNAMİK SIRALANAN PUAN KARTLARI */
@@ -33,8 +32,7 @@
         th, td { border: 1px solid #cbd5e1; padding: 8px; text-align: center; vertical-align: middle; }
         th { background-color: #1e293b; color: white; }
         
-        .team-cell { display: flex; align-items: center; gap: 8px; text-align: left; }
-        .team-logo { width: 22px; height: 22px; object-fit: contain; }
+        .team-cell { display: flex; align-items: center; justify-content: center; gap: 8px; text-align: center; }
         
         .score-inputs { display: flex; align-items: center; justify-content: center; gap: 4px; }
         .tbl-input { width: 35px; height: 30px; text-align: center; font-weight: bold; border: 1px solid #94a3b8; border-radius: 4px; font-size: 14px; }
@@ -42,7 +40,6 @@
         button { cursor: pointer; border: none; font-weight: bold; border-radius: 4px; }
         .btn-submit { background-color: #16a34a; color: white; padding: 12px 20px; font-size: 15px; width: 100%; margin-top: 10px; border-radius: 6px; }
         .btn-submit:disabled { background-color: #94a3b8; cursor: not-allowed; }
-        .btn-excel { background-color: #1d6f42; color: white; padding: 8px 12px; font-size: 12px; }
         
         .admin-panel { background: #fffbeb; border: 2px dashed #f59e0b; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
         .hidden { display: none !important; }
@@ -114,13 +111,6 @@
             align-items: center;
             width: 42%;
             text-align: center;
-        }
-
-        .team-box img {
-            width: 42px;
-            height: 42px;
-            object-fit: contain;
-            margin-bottom: 6px;
         }
 
         .team-box span {
@@ -207,7 +197,7 @@
             color: #64748b;
         }
 
-        /* SAYFA 2 CANLI SKORLAR TASARIMI */
+        /* CANLI SKORLAR TASARIMI */
         .p2-header-summary {
             display: flex;
             justify-content: space-between;
@@ -336,10 +326,10 @@
         .points-zero { background: #f1f5f9; color: #94a3b8; }
         .locked-icon { color: #94a3b8; font-size: 11px; font-style: italic; }
 
-        /* SAYFA 7: DETAYLI İSTATİSTİK KARTLARI */
+        /* DETAYLI İSTATİSTİK KARTLARI */
         .analytics-container { display: flex; flex-direction: column; gap: 25px; }
         .user-analytics-card { background: #ffffff; border: 1px solid #cbd5e1; border-radius: 12px; padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-        .u-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 2px solid #e2e8f0; margin-bottom: 15px; }
+        .u-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 2px solid #e2e8f0; margin-bottom: 15px; flex-wrap: wrap; gap: 10px; }
         .u-title { font-size: 20px; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 10px; }
         .u-badge-list { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 5px; }
         .u-badge { background: #f1f5f9; border: 1px solid #cbd5e1; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 700; color: #334155; }
@@ -355,6 +345,12 @@
         .fd-win { background: #16a34a; }
         .fd-draw { background: #eab308; }
         .fd-loss { background: #ef4444; }
+
+        /* DÜELLO (H2H) TABLOSU */
+        .h2h-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-top: 10px; }
+        .h2h-box { background: #f8fafc; border: 1px solid #e2e8f0; padding: 10px; border-radius: 6px; text-align: center; }
+        .h2h-rival { font-size: 13px; font-weight: 700; color: #334155; margin-bottom: 4px; }
+        .h2h-score { font-size: 15px; font-weight: 800; color: #1e293b; }
 
         @media (max-width: 600px) {
             .leaderboard-grid { grid-template-columns: repeat(2, 1fr); }
@@ -402,8 +398,7 @@
 <!-- ANA UYGULAMA EKRANI -->
 <div class="container hidden" id="mainScreen">
     <div style="overflow: hidden; margin-bottom: 15px;">
-        <h2 id="welcomeMsg" style="float: left; margin:0;"></h2>
-        <button type="button" class="btn-excel" onclick="exportToExcel()" style="float: right;">📥 Excel İndir</button>
+        <h2 id="welcomeMsg" style="margin:0; text-align:center;"></h2>
     </div>
 
     <!-- DINAMIK PUAN VE BİRİNCİLİK KARTLARI -->
@@ -442,18 +437,18 @@
         </div>
     </div>
 
-    <!-- MENÜ -->
+    <!-- 2 SÜTUNLU DERLİ TOPLU MENÜ -->
     <div class="nav-menu">
-        <button class="nav-btn active" id="btnPage1" onclick="switchPage(1)">1. Tahmin Girişi</button>
-        <button class="nav-btn" id="btnPage2" onclick="switchPage(2)">2. Canlı Skorlar</button>
-        <button class="nav-btn" id="btnPage5" onclick="switchPage(5)">📊 Haftalık Özet Puanlar</button>
-        <button class="nav-btn" id="btnPage7" onclick="switchPage(7)">📈 Detaylı Analiz & İstatistikler</button>
-        <button class="nav-btn" id="btnPage3" onclick="switchPage(3)">3. Sezon Arşivi</button>
+        <button class="nav-btn active" id="btnPage1" onclick="switchPage(1)">Tahmin Girişi</button>
+        <button class="nav-btn" id="btnPage2" onclick="switchPage(2)">Canlı Skorlar</button>
+        <button class="nav-btn" id="btnPage5" onclick="switchPage(5)">📊 Haftalık Özet</button>
+        <button class="nav-btn" id="btnPage7" onclick="switchPage(7)">📈 Detaylı Analiz</button>
+        <button class="nav-btn" id="btnPage3" onclick="switchPage(3)">Sezon Arşivi</button>
         <button class="nav-btn" id="btnPage6" onclick="switchPage(6)">📜 Puan Kuralları</button>
-        <button class="nav-btn nav-btn-admin hidden" id="btnPage4" onclick="switchPage(4)">4. Admin Skor Giriş</button>
+        <button class="nav-btn nav-btn-admin hidden" id="btnPage4" onclick="switchPage(4)">Admin Skor Giriş Paneli</button>
     </div>
 
-    <!-- SAYFA 1: TAHMİN GİRİŞİ -->
+    <!-- TAHMİN GİRİŞİ -->
     <div id="page1" class="page-content">
         <div style="text-align: center; margin-bottom: 20px;">
             <h3 id="p1Title" style="margin-bottom: 5px;">Aktif Hafta Tahminleriniz</h3>
@@ -468,7 +463,7 @@
         </div>
     </div>
 
-    <!-- SAYFA 2: CANLI SKORLAR VE MODERN GRAFİK -->
+    <!-- CANLI SKORLAR VE MODERN GRAFİK -->
     <div id="page2" class="page-content hidden">
         <!-- ÖZET VE CANLI HAFTA SIRALAMA BANNERI -->
         <div class="p2-header-summary">
@@ -491,7 +486,7 @@
         </div>
     </div>
 
-    <!-- SAYFA 5: HAFTALIK ÖZET PUANLAR VE HAFTANIN BİRİNCİSİ GRAFİĞİ -->
+    <!-- HAFTALIK ÖZET PUANLAR VE HAFTANIN BİRİNCİSİ GRAFİĞİ -->
     <div id="page5" class="page-content hidden">
         <h3 style="text-align:center; margin-bottom:5px;">📅 Haftalık Toplam Tahmin Puanları</h3>
         <p style="text-align:center; font-size:12px; color:gray; margin-bottom:15px;">Tahmin girmediğiniz haftalarda diğer oyuncuların puanları kilitli görünür.</p>
@@ -522,15 +517,15 @@
         </div>
     </div>
 
-    <!-- SAYFA 7: DETAYLI PERFORMANS & İSTATİSTİKLER -->
+    <!-- DETAYLI PERFORMANS & İSTATİSTİKLER -->
     <div id="page7" class="page-content hidden">
-        <h3 style="margin-bottom:5px;">📈 Oyuncu Performans & Risk Profili</h3>
-        <p style="text-align:center; font-size:12px; color:gray; margin-bottom:20px;">Tamamlanan tüm maç verilerine dayalı detaylı istatistikler ve unvanlar.</p>
+        <h3 style="margin-bottom:5px;">📈 Oyuncu Performans, Seri & Düello Analizi</h3>
+        <p style="text-align:center; font-size:12px; color:gray; margin-bottom:20px;">Tamamlanan tüm maç ve hafta verilerine dayalı detaylı istatistikler.</p>
         
         <div class="analytics-container" id="analyticsContainer"></div>
     </div>
 
-    <!-- SAYFA 3: TÜM HAFTALAR -->
+    <!-- TÜM HAFTALAR -->
     <div id="page3" class="page-content hidden">
         <div style="margin-bottom: 15px; display:flex; align-items:center; gap:10px;">
             <label><b>Hafta Filtrele:</b></label>
@@ -559,32 +554,32 @@
         </table>
     </div>
 
-    <!-- SAYFA 6: PUANLAMA KURALLARI -->
+    <!-- PUANLAMA KURALLARI -->
     <div id="page6" class="page-content hidden">
         <h3 style="margin-bottom:20px; color:#1e293b;">📋 Liderlik Portalı Puanlama Sistemi</h3>
         
         <div class="rule-card">
-            <h4><span class="rule-badge">1. STANDART MAÇLAR</span> Normal Karşılaşmalar</h4>
+            <h4><span class="rule-badge">STANDART MAÇLAR</span> Normal Karşılaşmalar</h4>
             <p><strong>• Doğru Taraf / Kazananı Bilmek:</strong> 1 Puan<br>
                <strong>• Tam Skoru Bilmek:</strong> 4 Puan</p>
         </div>
 
         <div class="rule-card" style="border-left-color: #d97706;">
-            <h4><span class="rule-badge" style="background:#fef3c7; color:#b45309;">2. SÜRPRİZ BONUS</span> 3 Büyüklerin Puan Kayıpları</h4>
+            <h4><span class="rule-badge" style="background:#fef3c7; color:#b45309;">SÜRPRİZ BONUS</span> 3 Büyüklerin Puan Kayıpları</h4>
             <p><strong>Galatasaray, Fenerbahçe veya Beşiktaş</strong>'ın diğer takımlarla oynadığı maçlarda puan kaybı yapacağını (Beraberlik veya Mağlubiyet) tahmin edip bilenlere <strong>+3 Bonus Puan</strong> verilir:<br>
                <strong>• Taraf + Puan Kaybı Sürprizi:</strong> 1 + 3 = <strong>4 Puan</strong><br>
                <strong>• Tam Skor + Puan Kaybı Sürprizi:</strong> 4 + 3 = <strong>7 Puan</strong></p>
         </div>
 
         <div class="rule-card" style="border-left-color: #dc2626;">
-            <h4><span class="rule-badge" style="background:#fee2e2; color:#991b1b;">3. DERBİ MAÇLARI</span> 3 Büyüklerin Kendi Aralarındaki Maçlar</h4>
+            <h4><span class="rule-badge" style="background:#fee2e2; color:#991b1b;">DERBİ MAÇLARI</span> 3 Büyüklerin Kendi Aralarındaki Maçlar</h4>
             <p>Galatasaray, Fenerbahçe ve Beşiktaş'ın kendi aralarında oynadığı dev derbilerde puanlar özel katsayı ile hesaplanır:<br>
                <strong>• Derbi Sonucunu/Tarafını Bilmek:</strong> 4 Puan<br>
                <strong>• Derbi Tam Skorunu Bilmek:</strong> 7 Puan</p>
         </div>
     </div>
 
-    <!-- SAYFA 4: ADMİN -->
+    <!-- ADMİN -->
     <div id="page4" class="page-content hidden">
         <div style="text-align: center; margin-bottom: 15px;">
             <h3 style="color:#b45309; margin-bottom: 5px;">⚽ Gerçek Maç Sonuçları Giriş Paneli</h3>
@@ -635,27 +630,6 @@
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
-
-    const takimLogolari = {
-        "Alanyaspor": "https://ssl.gstatic.com/onebox/media/sports/logos/optimized/md9O0STrEeOCrs7txX4sMA_500x500.png",
-        "Amed": "https://images.weserv.nl/?url=upload.wikimedia.org/wikipedia/tr/0/03/Amed_SFK_logo.png",
-        "Beşiktaş": "https://ssl.gstatic.com/onebox/media/sports/logos/optimized/WLe9Xg7ka5F3k1Q2Wq3eOA_500x500.png",
-        "Çaykur Rizespor": "https://ssl.gstatic.com/onebox/media/sports/logos/optimized/KiNTeyPNWHfM6a_qusw4Qg_500x500.png",
-        "Çorum FK": "https://images.weserv.nl/?url=upload.wikimedia.org/wikipedia/tr/8/87/%C3%87orum_FK_logo.png",
-        "Erzurumspor FK": "https://ssl.gstatic.com/onebox/media/sports/logos/optimized/JG70ldrcUyJkLmPLeQyEHw_500x500.png",
-        "Eyüpspor": "https://images.weserv.nl/?url=upload.wikimedia.org/wikipedia/tr/a/a2/Ey%C3%BCpspor_Logo.png",
-        "Fenerbahçe": "https://ssl.gstatic.com/onebox/media/sports/logos/optimized/HOQreZgFrmtQiLi8HKb9zA_500x500.png",
-        "Galatasaray": "https://ssl.gstatic.com/onebox/media/sports/logos/optimized/TWjoccvTU4JXZJZ3aW3cVg_500x500.png",
-        "Gaziantep FK": "https://images.weserv.nl/?url=upload.wikimedia.org/wikipedia/tr/b/bb/Gaziantep_FK.png",
-        "Gençlerbirliği": "https://ssl.gstatic.com/onebox/media/sports/logos/optimized/Uso17CX-1FSK7s5R0J5ldA_500x500.png",
-        "Göztepe": "https://ssl.gstatic.com/onebox/media/sports/logos/optimized/vjtcQOabVkCAP2lNGRLVlQ_500x500.png",
-        "Kasımpaşa": "https://ssl.gstatic.com/onebox/media/sports/logos/optimized/7zFWZCjDqsK7TH4BxZcdfA_500x500.png",
-        "Kocaelispor": "https://images.weserv.nl/?url=upload.wikimedia.org/wikipedia/tr/4/4b/Kocaelispor_logo.png",
-        "Konyaspor": "https://ssl.gstatic.com/onebox/media/sports/logos/optimized/GI8KXqt_7nrWNszUh2mC-A_500x500.png",
-        "Samsunspor": "https://ssl.gstatic.com/onebox/media/sports/logos/optimized/lF7bCDr-Ai-fCbNZnfcxyA_500x500.png",
-        "Trabzonspor": "https://ssl.gstatic.com/onebox/media/sports/logos/optimized/rQs-vhZVYO9BbP4nInu3uw_500x500.png",
-        "İstanbul Başakşehir": "https://ssl.gstatic.com/onebox/media/sports/logos/optimized/b_G6FYhPyTa_WdhdikiqyA_500x500.png"
-    };
 
     const big3 = ["Galatasaray", "Fenerbahçe", "Beşiktaş"];
     const oyuncular = ["Umut", "ibrahim", "Özkan", "Onur"];
@@ -976,21 +950,16 @@
                 let userEv = (dbTahminler[mId] && dbTahminler[mId][currentUser]) ? dbTahminler[mId][currentUser].ev : "";
                 let userDep = (dbTahminler[mId] && dbTahminler[mId][currentUser]) ? dbTahminler[mId][currentUser].dep : "";
 
-                const evLogo = takimLogolari[m.ev] ? `<img src="${takimLogolari[m.ev]}" class="team-logo">` : '';
-                const depLogo = takimLogolari[m.dep] ? `<img src="${takimLogolari[m.dep]}" class="team-logo">` : '';
-
                 let disabled = (zamanDoldu || onayliMi || currentUser === "Yonetici") ? "disabled" : "";
 
                 containerHtml += `
                 <div class="match-card">
                     <div class="teams-header">
                         <div class="team-box">
-                            ${evLogo}
                             <span>${m.ev}</span>
                         </div>
                         <div class="vs-badge">VS</div>
                         <div class="team-box">
-                            ${depLogo}
                             <span>${m.dep}</span>
                         </div>
                     </div>
@@ -1044,9 +1013,6 @@
                 let gercekEv = (m.gEv !== undefined) ? m.gEv : "";
                 let gercekDep = (m.gDep !== undefined) ? m.gDep : "";
                 let gercekSkor = (gercekEv !== "") ? `${gercekEv} - ${gercekDep}` : "vs";
-
-                const evLogo = takimLogolari[m.ev] ? `<img src="${takimLogolari[m.ev]}" class="team-logo">` : '';
-                const depLogo = takimLogolari[m.dep] ? `<img src="${takimLogolari[m.dep]}" class="team-logo">` : '';
 
                 const evB = big3.includes(m.ev);
                 const depB = big3.includes(m.dep);
@@ -1115,11 +1081,11 @@
                         ${tagHtml}
                         <div class="live-score-header">
                             <div class="live-team">
-                                ${evLogo} <span>${m.ev}</span>
+                                <span>${m.ev}</span>
                             </div>
                             <div class="live-real-score">${gercekSkor}</div>
                             <div class="live-team away">
-                                <span>${m.dep}</span> ${depLogo}
+                                <span>${m.dep}</span>
                             </div>
                         </div>
                         <div class="player-predictions-grid">
@@ -1321,7 +1287,6 @@
         });
     }
 
-    /* SAYFA 7: DETAYLI İSTATİSTİK HESAPLAMA VE RENDER */
     function renderPage7() {
         let stats = {};
         oyuncular.forEach(o => {
@@ -1334,32 +1299,30 @@
                 kahin: 0,
                 derbiPuan: 0,
                 derbiMac: 0,
-                toplamGolTahmin: 0,
                 evSahibiTahminCount: 0,
                 surprizTahminCount: 0,
                 takimPuan: {},
                 haftaPuanlari: Array(35).fill(0),
-                oynananHaftaSayisi: 0,
-                araliksizPuanSerisi: 0,
-                maxAraliksizPuan: 0,
-                araliksizSkorSerisi: 0,
-                maxAraliksizSkor: 0
+                h2h: {}
             };
+            oyuncular.forEach(r => {
+                if (r !== o) stats[o].h2h[r] = { win: 0, loss: 0, draw: 0 };
+            });
         });
 
-        // Maç Bazlı İstatistik Toplama
+        // Maç bazlı istatistikler ve H2H (Kafa Kafaya) Düello hesaplaması
         Object.keys(dbMaclar).forEach(mId => {
             const m = dbMaclar[mId];
             if(m.gEv !== "" && m.gEv !== undefined) {
                 const gE = parseInt(m.gEv);
                 const gD = parseInt(m.gDep);
-                const realSide = gE > gD ? 1 : (gE < gD ? 2 : 0);
                 const isDerby = big3.includes(m.ev) && big3.includes(m.dep);
-
-                // Kahin Rozeti Tespiti (Bu maçı tek başına doğru bilen var mı)
                 let bilenler = [];
 
+                let macPuanlari = {};
+
                 oyuncular.forEach(o => {
+                    macPuanlari[o] = 0;
                     if(dbTahminler[mId] && dbTahminler[mId][o] && dbTahminler[mId][o].ev !== "" && dbTahminler[mId][o].dep !== "") {
                         const t = dbTahminler[mId][o];
                         const tE = parseInt(t.ev);
@@ -1367,9 +1330,9 @@
                         const predSide = tE > tD ? 1 : (tE < tD ? 2 : 0);
                         const p = puanHesapla(m.ev, m.dep, gE, gD, tE, tD);
 
+                        macPuanlari[o] = p;
                         stats[o].toplamPuan += p;
                         stats[o].oynananMac += 1;
-                        stats[o].toplamGolTahmin += (tE + tD);
 
                         if(predSide === 1) stats[o].evSahibiTahminCount++;
                         if(predSide === 0 || predSide === 2) stats[o].surprizTahminCount++;
@@ -1386,8 +1349,6 @@
                             stats[o].tamSkor++;
                             bilenler.push(o);
                         } else {
-                            // Kıl Payı (Tam skor değil ama fark 1 gol)
-                            let diff = Math.abs((gE - gD) - (tE - tD));
                             let totalDiff = Math.abs(gE - tE) + Math.abs(gD - tD);
                             if(totalDiff === 1) {
                                 stats[o].kilPayi++;
@@ -1399,11 +1360,31 @@
                             stats[o].derbiMac++;
                         }
 
-                        // Hafta Bazlı Kayıt
                         const hNum = parseInt(m.hafta.replace('. Hafta',''));
                         if(hNum) stats[o].haftaPuanlari[hNum] += p;
                     }
                 });
+
+                // Her ikilinin bu maçtaki kapışması (H2H)
+                for (let i = 0; i < oyuncular.length; i++) {
+                    for (let j = i + 1; j < oyuncular.length; j++) {
+                        let p1 = oyuncular[i];
+                        let p2 = oyuncular[j];
+                        let score1 = macPuanlari[p1];
+                        let score2 = macPuanlari[p2];
+
+                        if (score1 > score2) {
+                            stats[p1].h2h[p2].win++;
+                            stats[p2].h2h[p1].loss++;
+                        } else if (score2 > score1) {
+                            stats[p2].h2h[p1].win++;
+                            stats[p1].h2h[p2].loss++;
+                        } else {
+                            stats[p1].h2h[p2].draw++;
+                            stats[p2].h2h[p1].draw++;
+                        }
+                    }
+                }
 
                 if(bilenler.length === 1) {
                     stats[bilenler[0]].kahin++;
@@ -1411,11 +1392,35 @@
             }
         });
 
-        // Hafta bazlı form ve trend istatistikleri
+        // Hafta bazlı matrix ve Zirvede Kalma Süresi (Streak) hesaplama
         let haftalikMatrix = getHaftalikVeriler();
         let oynananHaftalar = [];
+        let oyuncuSeriler = { "Umut": 0, "ibrahim": 0, "Özkan": 0, "Onur": 0 };
+        let oyuncuMaxSeriler = { "Umut": 0, "ibrahim": 0, "Özkan": 0, "Onur": 0 };
+
         for(let i=1; i<=34; i++) {
-            if(haftalikMatrix[`${i}. Hafta`].oynandi) oynananHaftalar.push(i);
+            let hName = `${i}. Hafta`;
+            if(haftalikMatrix[hName].oynandi) {
+                oynananHaftalar.push(i);
+                let maxP = -1;
+                oyuncular.forEach(o => {
+                    if(haftalikMatrix[hName][o] > maxP) maxP = haftalikMatrix[hName][o];
+                });
+
+                if(maxP > 0) {
+                    let liderler = oyuncular.filter(o => haftalikMatrix[hName][o] === maxP);
+                    oyuncular.forEach(o => {
+                        if (liderler.includes(o)) {
+                            oyuncuSeriler[o]++;
+                            if (oyuncuSeriler[o] > oyuncuMaxSeriler[o]) {
+                                oyuncuMaxSeriler[o] = oyuncuSeriler[o];
+                            }
+                        } else {
+                            oyuncuSeriler[o] = 0;
+                        }
+                    });
+                }
+            }
         }
 
         let containerHtml = "";
@@ -1425,12 +1430,10 @@
             let pm = s.oynananMac > 0 ? (s.toplamPuan / s.oynananMac).toFixed(2) : "0.00";
             let isabetOrani = s.oynananMac > 0 ? ((s.dogruTaraf / s.oynananMac) * 100).toFixed(1) : "0.0";
             
-            // En iyi / En Kötü Hafta
             let activeWeeklyPoints = oynananHaftalar.map(h => s.haftaPuanlari[h]);
             let enIyiHafta = activeWeeklyPoints.length > 0 ? Math.max(...activeWeeklyPoints) : 0;
             let enKotuHafta = activeWeeklyPoints.length > 0 ? Math.min(...activeWeeklyPoints) : 0;
 
-            // Favori & Kabus Takım
             let favTeam = "-", kabusTeam = "-";
             let maxTP = -1, minTP = 999;
             Object.keys(s.takimPuan).forEach(t => {
@@ -1438,21 +1441,17 @@
                 if(s.takimPuan[t] < minTP) { minTP = s.takimPuan[t]; kabusTeam = t; }
             });
 
-            // Risk Profili
-            let avgGol = s.oynananMac > 0 ? (s.toplamGolTahmin / s.oynananMac).toFixed(1) : "0.0";
             let evAski = s.oynananMac > 0 ? ((s.evSahibiTahminCount / s.oynananMac) * 100).toFixed(0) : "0";
             let surprizOrani = s.oynananMac > 0 ? ((s.surprizTahminCount / s.oynananMac) * 100).toFixed(0) : "0";
+            let maxStreak = oyuncuMaxSeriler[o];
 
-            // Rozet ve Unvan Tespiti
             let badges = [];
             if(s.kahin > 0) badges.push(`🔮 Kahin (${s.kahin} Tek Başına Tam Skor)`);
             if(s.kilPayi > 0) badges.push(`🎯 Kıl Payı (${s.kilPayi} Maç 1 Golle Kaçtı)`);
+            if(maxStreak > 1) badges.push(`🔥 ${maxStreak} Hafta Zirve Serisi`);
             if(parseFloat(evAski) > 55) badges.push(`🏰 Ev Sahibi Aşkı (%${evAski})`);
             if(parseFloat(surprizOrani) > 45) badges.push(`💣 Sürpriz Avcısı (%${surprizOrani})`);
-            if(parseFloat(avgGol) >= 3.0) badges.push(`⚽ Ofansif Tahminci (${avgGol} Gol/Maç)`);
-            if(parseFloat(avgGol) < 2.3) badges.push(`🛡️ Defansif / Garantici (${avgGol} Gol/Maç)`);
 
-            // Son 5 Hafta Form
             let last5 = oynananHaftalar.slice(-5);
             let formDotsHtml = "";
             last5.forEach(h => {
@@ -1462,6 +1461,20 @@
             });
 
             let badgeHtml = badges.map(b => `<span class="u-badge">${b}</span>`).join(" ");
+
+            // H2H Düello Kartları HTML
+            let h2hHtml = "";
+            Object.keys(s.h2h).forEach(rival => {
+                let d = s.h2h[rival];
+                h2hHtml += `
+                    <div class="h2h-box">
+                        <div class="h2h-rival">vs ${rival}</div>
+                        <div class="h2h-score" style="color:#16a34a;">${d.win}G</div> - 
+                        <span class="h2h-score" style="color:#ca8a04;">${d.draw}B</span> - 
+                        <span class="h2h-score" style="color:#dc2626;">${d.loss}M</span>
+                    </div>
+                `;
+            });
 
             containerHtml += `
                 <div class="user-analytics-card" style="border-top: 4px solid ${oyuncuTekRenk[o]};">
@@ -1483,19 +1496,19 @@
                         <div class="stat-box">
                             <div class="stat-box-title">Performans Metrikleri</div>
                             <div class="stat-box-val">${s.toplamPuan} P <span style="font-size:13px; color:#64748b;">(${pm} P/M)</span></div>
-                            <div class="stat-box-sub">İsbet Oranı: %${isabetOrani} | Oynanan: ${s.oynananMac} Maç</div>
+                            <div class="stat-box-sub">İsabet Oranı: %${isabetOrani} | Oynanan: ${s.oynananMac} Maç</div>
                         </div>
 
                         <div class="stat-box">
-                            <div class="stat-box-title">Isabet Dağılımı</div>
+                            <div class="stat-box-title">İsabet Dağılımı</div>
                             <div class="stat-box-val">🎯 ${s.tamSkor} Tam Skor</div>
                             <div class="stat-box-sub">Doğru Taraf: ${s.dogruTaraf} | Kıl Payı Kaçan: ${s.kilPayi}</div>
                         </div>
 
                         <div class="stat-box">
-                            <div class="stat-box-title">Hafta Rekorları</div>
-                            <div class="stat-box-val">🔥 Max: ${enIyiHafta} P</div>
-                            <div class="stat-box-sub">En Düşük Hafta: ${enKotuHafta} P</div>
+                            <div class="stat-box-title">Hafta & Zirve Rekorları</div>
+                            <div class="stat-box-val">👑 En Uzun Seri: ${maxStreak} Hafta</div>
+                            <div class="stat-box-sub">Max Hafta Puanı: ${enIyiHafta} P</div>
                         </div>
 
                         <div class="stat-box">
@@ -1503,11 +1516,12 @@
                             <div class="stat-box-val">Favori: ${favTeam}</div>
                             <div class="stat-box-sub">Kabus: ${kabusTeam} | Derbi Puanı: ${s.derbiPuan} P</div>
                         </div>
+                    </div>
 
-                        <div class="stat-box">
-                            <div class="stat-box-title">Risk & Eğilim Profili</div>
-                            <div class="stat-box-val">${avgGol} Gol / Maç</div>
-                            <div class="stat-box-sub">Ev Eğilimi: %${evAski} | Sürpriz Risk: %${surprizOrani}</div>
+                    <div style="margin-top:15px; padding-top:12px; border-top:1px dashed #e2e8f0;">
+                        <div style="font-size:12px; font-weight:700; color:#64748b; text-transform:uppercase; margin-bottom:8px;">⚔️ Kafa Kafaya (H2H) Arkadaş Düelloları (Galibiyet - Beraberlik - Mağlubiyet)</div>
+                        <div class="h2h-grid">
+                            ${h2hHtml}
                         </div>
                     </div>
                 </div>
@@ -1572,11 +1586,8 @@
                 let gEv = (m.gEv !== undefined) ? m.gEv : "";
                 let gDep = (m.gDep !== undefined) ? m.gDep : "";
 
-                const evLogo = takimLogolari[m.ev] ? `<img src="${takimLogolari[m.ev]}" class="team-logo">` : '';
-                const depLogo = takimLogolari[m.dep] ? `<img src="${takimLogolari[m.dep]}" class="team-logo">` : '';
-
                 tbody += `<tr>
-                    <td><div class="team-cell">${evLogo} <span>${m.ev}</span></div></td>
+                    <td><div class="team-cell"><span>${m.ev}</span></div></td>
                     <td>
                         <div class="score-inputs">
                             <input type="number" class="tbl-input p4-input" data-mid="${mId}" data-type="gEv" value="${gEv}">
@@ -1584,7 +1595,7 @@
                             <input type="number" class="tbl-input p4-input" data-mid="${mId}" data-type="gDep" value="${gDep}">
                         </div>
                     </td>
-                    <td><div class="team-cell">${depLogo} <span>${m.dep}</span></div></td>
+                    <td><div class="team-cell"><span>${m.dep}</span></div></td>
                 </tr>`;
             }
         });
@@ -1729,12 +1740,6 @@
         }).catch(err => {
             alert("Sıfırlama sırasında hata oluştu: " + err.message);
         });
-    }
-
-    function exportToExcel() {
-        const table = document.getElementById("excelTable");
-        const wb = XLSX.utils.table_to_book(table, { sheet: "Süper Lig Tahminleri" });
-        XLSX.writeFile(wb, "Super_Lig_Tahmin_Portali_2026.xlsx");
     }
 </script>
 </body>
