@@ -399,7 +399,6 @@
 <div class="container hidden" id="mainScreen">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
         <h2 id="welcomeMsg" style="margin:0;"></h2>
-        <button type="button" id="btnBildirimIzin" onclick="bildirimIzniIste()" style="background:#0284c7; color:white; padding:6px 12px; font-size:12px; border-radius:6px;">🔔 Bildirimleri Aç</button>
     </div>
 
     <!-- DINAMIK PUAN VE BİRİNCİLİK KARTLARI -->
@@ -419,7 +418,7 @@
                     <label style="font-size:13px;"><b>Son Tahmin Tarihi:</b></label>
                     <input type="datetime-local" id="adminKilitTarihi" style="padding:3px;">
                 </div>
-                <button type="button" onclick="adminHaftaGuncelle()" style="background:#d97706; color:white; padding:6px 12px;">Kaydet ve Bildir</button>
+                <button type="button" onclick="adminHaftaGuncelle()" style="background:#d97706; color:white; padding:6px 12px;">Kaydet</button>
             </div>
             <div>
                 <button type="button" onclick="resetTestData()" style="background:#ef4444; color:white; padding:6px 12px;" title="Tüm oyuncu tahminlerini ve onaylarını sıfırlar">🧹 Test Verilerini Temizle</button>
@@ -661,35 +660,8 @@
     let dbAyarlar = { aktifHafta: "1. Hafta", kilitTarihi: "" };
     let dbOnaylar = {};
     let timerInterval = null;
-    let reminderCheckInterval = null;
     let myChart = null;
     let winnerChartInstance = null;
-    let lastNotifiedHafta = "";
-    let sentReminders = {}; // Gün içinde aynı hatırlatmanın tekrar gitmesini önlemek için
-
-    function bildirimIzniIste() {
-        if (!("Notification" in window)) {
-            alert("Bu tarayıcı masaüstü bildirimlerini desteklemiyor.");
-            return;
-        }
-        Notification.requestPermission().then(permission => {
-            if (permission === "granted") {
-                alert("✅ Bildirim izni başarıyla verildi!");
-                document.getElementById('btnBildirimIzin').classList.add('hidden');
-            } else {
-                alert("❌ Bildirim izni reddedildi.");
-            }
-        });
-    }
-
-    function gonderBildirim(baslik, mesaj) {
-        if ("Notification" in window && Notification.permission === "granted") {
-            new Notification(baslik, {
-                body: mesaj,
-                icon: "https://cdn-icons-png.flaticon.com/512/53/53283.png"
-            });
-        }
-    }
 
     function login() {
         const user = document.getElementById('loginUser').value;
@@ -742,10 +714,6 @@
         document.getElementById('mainScreen').classList.remove('hidden');
         document.getElementById('welcomeMsg').innerText = "Hoş Geldin, " + currentUser;
 
-        if ("Notification" in window && Notification.permission === "granted") {
-            document.getElementById('btnBildirimIzin').classList.add('hidden');
-        }
-
         if (currentUser === "Yonetici") {
             document.getElementById('adminPanel').classList.remove('hidden');
             document.getElementById('btnPage4').classList.remove('hidden');
@@ -782,14 +750,6 @@
                 p4Select.value = dbAyarlar.aktifHafta;
             }
 
-            // Yeni hafta aktifleştiğinde bildirim kontrolü
-            if (lastNotifiedHafta !== dbAyarlar.aktifHafta && dbAyarlar.aktifHafta) {
-                lastNotifiedHafta = dbAyarlar.aktifHafta;
-                if (currentUser !== "Yonetici" && currentUser) {
-                    gonderBildirim("⚽ Yeni Hafta Başladı!", `${dbAyarlar.aktifHafta} tahmin girişleri açıldı. Hemen skorlarını gir!`);
-                }
-            }
-
             updateLeaderboard();
             renderPage1();
             renderPage2();
@@ -798,8 +758,6 @@
             renderPage7();
             if(currentUser === "Yonetici") renderPage4();
         });
-
-        startBackgroundNotificationChecker();
     }
 
     function switchPage(pageNum) {
@@ -847,56 +805,6 @@
             timerElem.innerText = sureMetni;
             timerElem.style.color = "#d97706";
         }, 1000);
-    }
-
-    // Arka planda saat, süre azalmaları ve 12:23 kontrolü yapan döngü
-    function startBackgroundNotificationChecker() {
-        if (reminderCheckInterval) clearInterval(reminderCheckInterval);
-
-        reminderCheckInterval = setInterval(() => {
-            if (!currentUser || currentUser === "Yonetici") return;
-
-            const now = new Date();
-            const hours = now.getHours();
-            const minutes = now.getMinutes();
-            const todayStr = now.toISOString().split('T')[0];
-
-            const h = dbAyarlar.aktifHafta;
-            const haftaKey = h ? h.replace(/[^a-zA-Z0-9]/g, "") : "";
-            const onayliMi = (dbOnaylar[haftaKey] && dbOnaylar[haftaKey][currentUser]);
-
-            // 1. Her gün saat 12:23'te skor girmemiş kullanıcılara hatırlatma
-            if (hours === 12 && minutes === 23 && !onayliMi) {
-                let reminderKey = `${todayStr}_1223_${h}`;
-                if (!sentReminders[reminderKey]) {
-                    sentReminders[reminderKey] = true;
-                    gonderBildirim("⏰ Tahmin Hatırlatması", `${h} için henüz skor girişi yapmadın, acele et!`);
-                }
-            }
-
-            // 2. Kilit tarihine kalan süre kontrolleri (4s, 2s, 1s, 30dk, 10dk)
-            if (dbAyarlar.kilitTarihi && !onayliMi) {
-                const targetTime = new Date(dbAyarlar.kilitTarihi).getTime();
-                const diffMs = targetTime - now.getTime();
-                const diffMins = Math.floor(diffMs / (1000 * 60));
-
-                const checkAndNotify = (exactMins, msgTitle, msgBody) => {
-                    if (diffMins === exactMins) {
-                        let uniqueKey = `${h}_${exactMins}m`;
-                        if (!sentReminders[uniqueKey]) {
-                            sentReminders[uniqueKey] = true;
-                            gonderBildirim(msgTitle, msgBody);
-                        }
-                    }
-                };
-
-                checkAndNotify(240, "⚠️ Son 4 Saat!", `${h} tahmin süresinin bitmesine 4 saat kaldı!`);
-                checkAndNotify(120, "⚠️ Son 2 Saat!", `${h} tahmin süresinin bitmesine 2 saat kaldı!`);
-                checkAndNotify(60, "🚨 Son 1 Saat!", `${h} tahmin süresinin bitmesine 1 saat kaldı, hemen kaydet!`);
-                checkAndNotify(30, "🚨 Son 30 Dakika!", `Süre daralıyor! ${h} için son yarım saat!`);
-                checkAndNotify(10, "🔥 Son 10 Dakika!", `Kritik Eşik! ${h} tahminleri az sonra kilitleniyor!`);
-            }
-        }, 30000); // Her 30 saniyede bir kontrol eder
     }
 
     function puanHesapla(ev, dep, gE, gD, tE, tD) {
@@ -1402,7 +1310,6 @@
             });
         });
 
-        // Maç bazlı istatistikler ve H2H (Kafa Kafaya) Düello hesaplaması
         Object.keys(dbMaclar).forEach(mId => {
             const m = dbMaclar[mId];
             if(m.gEv !== "" && m.gEv !== undefined) {
@@ -1457,7 +1364,6 @@
                     }
                 });
 
-                // Her ikilinin bu maçtaki kapışması (H2H)
                 for (let i = 0; i < oyuncular.length; i++) {
                     for (let j = i + 1; j < oyuncular.length; j++) {
                         let p1 = oyuncular[i];
@@ -1484,7 +1390,6 @@
             }
         });
 
-        // Hafta bazlı matrix ve Zirvede Kalma Süresi (Streak) hesaplama
         let haftalikMatrix = getHaftalikVeriler();
         let oynananHaftalar = [];
         let oyuncuSeriler = { "Umut": 0, "ibrahim": 0, "Özkan": 0, "Onur": 0 };
@@ -1554,7 +1459,6 @@
 
             let badgeHtml = badges.map(b => `<span class="u-badge">${b}</span>`).join(" ");
 
-            // H2H Düello Kartları HTML
             let h2hHtml = "";
             Object.keys(s.h2h).forEach(rival => {
                 let d = s.h2h[rival];
@@ -1799,7 +1703,7 @@
         const h = document.getElementById('adminAktifHafta').value;
         const kt = document.getElementById('adminKilitTarihi').value;
         db.ref('ayarlar').update({ aktifHafta: h, kilitTarihi: kt }).then(() => {
-            alert("✅ Aktif hafta bilgileri güncellendi ve kullanıcılara bildirim tetiklendi.");
+            alert("✅ Aktif hafta bilgileri güncellendi.");
         });
     }
 
