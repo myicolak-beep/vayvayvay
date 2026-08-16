@@ -90,11 +90,23 @@
             align-items: center;
             justify-content: space-between;
             transition: transform 0.2s ease, box-shadow 0.2s ease;
+            position: relative;
         }
 
         .match-card:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        .match-date-badge {
+            font-size: 11px;
+            color: #d97706;
+            background: #fffbeb;
+            border: 1px solid #fde68a;
+            padding: 2px 8px;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            font-weight: 700;
         }
 
         .teams-header {
@@ -414,11 +426,7 @@
                     <label style="font-size:13px;"><b>Aktif Hafta:</b></label>
                     <select id="adminAktifHafta" style="padding:4px;"></select>
                 </div>
-                <div>
-                    <label style="font-size:13px;"><b>Son Tahmin Tarihi:</b></label>
-                    <input type="datetime-local" id="adminKilitTarihi" style="padding:3px;">
-                </div>
-                <button type="button" onclick="adminHaftaGuncelle()" style="background:#d97706; color:white; padding:6px 12px;">Kaydet</button>
+                <button type="button" onclick="adminHaftaGuncelle()" style="background:#d97706; color:white; padding:6px 12px;">Aktif Haftayı Kaydet</button>
             </div>
             <div>
                 <button type="button" onclick="resetTestData()" style="background:#ef4444; color:white; padding:6px 12px;" title="Tüm oyuncu tahminlerini ve onaylarını sıfırlar">🧹 Test Verilerini Temizle</button>
@@ -445,7 +453,7 @@
         <button class="nav-btn" id="btnPage7" onclick="switchPage(7)">📈 Detaylı Analiz</button>
         <button class="nav-btn" id="btnPage3" onclick="switchPage(3)">Sezon Arşivi</button>
         <button class="nav-btn" id="btnPage6" onclick="switchPage(6)">📜 Puan Kuralları</button>
-        <button class="nav-btn nav-btn-admin hidden" id="btnPage4" onclick="switchPage(4)">Admin Skor Giriş Paneli</button>
+        <button class="nav-btn nav-btn-admin hidden" id="btnPage4" onclick="switchPage(4)">Admin Maç & Skor Paneli</button>
     </div>
 
     <!-- TAHMİN GİRİŞİ -->
@@ -579,10 +587,11 @@
         </div>
     </div>
 
-    <!-- ADMİN -->
+    <!-- ADMİN MAÇ & SKOR -->
     <div id="page4" class="page-content hidden">
         <div style="text-align: center; margin-bottom: 15px;">
-            <h3 style="color:#b45309; margin-bottom: 5px;">⚽ Gerçek Maç Sonuçları Giriş Paneli</h3>
+            <h3 style="color:#b45309; margin-bottom: 5px;">⚽ Maç Takvimi, Tarihleri & Skor Paneli</h3>
+            <p style="font-size: 12px; color: #64748b;">Her maçın başlama tarihini ayrı ayrı belirleyebilir ve gerçek maç skorlarını girebilirsiniz.</p>
             <div style="display:inline-block; margin-top:5px;">
                 <label><b>Hafta Seçin:</b></label>
                 <select id="p4HaftaFilter" onchange="renderPage4()" style="padding:5px; margin-left:5px;"></select>
@@ -592,14 +601,15 @@
             <table>
                 <thead>
                     <tr>
-                        <th style="width: 40%;">Ev Sahibi</th>
-                        <th style="width: 20%;">Gerçek Skor</th>
-                        <th style="width: 40%;">Deplasman</th>
+                        <th style="width: 30%;">Ev Sahibi</th>
+                        <th style="width: 30%;">Maç Başlangıç Tarihi & Saati</th>
+                        <th style="width: 15%;">Gerçek Skor</th>
+                        <th style="width: 25%;">Deplasman</th>
                     </tr>
                 </thead>
                 <tbody id="p4TableBody"></tbody>
             </table>
-            <button type="button" onclick="submitGercekSkorlar()" class="btn-submit" style="background-color: #d97706;">💾 Gerçek Skorları Kaydet</button>
+            <button type="button" onclick="submitMacVeSkorlar()" class="btn-submit" style="background-color: #d97706;">💾 Maç Bilgilerini ve Skorları Kaydet</button>
         </div>
     </div>
 
@@ -657,7 +667,7 @@
     let currentUser = "";
     let dbMaclar = {};
     let dbTahminler = {};
-    let dbAyarlar = { aktifHafta: "1. Hafta", kilitTarihi: "" };
+    let dbAyarlar = { aktifHafta: "1. Hafta" };
     let dbOnaylar = {};
     let timerInterval = null;
     let myChart = null;
@@ -743,11 +753,13 @@
             const data = snapshot.val() || {};
             dbMaclar = data.maclar || {};
             dbTahminler = data.tahminler || {};
-            dbAyarlar = data.ayarlar || { aktifHafta: "1. Hafta", kilitTarihi: "" };
+            dbAyarlar = data.ayarlar || { aktifHafta: "1. Hafta" };
             dbOnaylar = data.onaylar || {};
 
+            if(ahSelect) ahSelect.value = dbAyarlar.aktifHafta || "1. Hafta";
+
             if(!p4Select.dataset.userChanged) {
-                p4Select.value = dbAyarlar.aktifHafta;
+                p4Select.value = dbAyarlar.aktifHafta || "1. Hafta";
             }
 
             updateLeaderboard();
@@ -775,21 +787,30 @@
             const timerElem = document.getElementById('p1Timer');
             if (!timerElem) return;
 
-            if (!dbAyarlar.kilitTarihi) {
-                timerElem.innerText = "";
+            const h = dbAyarlar.aktifHafta;
+            let nearestMatchTime = Infinity;
+            const simdi = new Date().getTime();
+
+            Object.keys(dbMaclar).forEach(mId => {
+                const m = dbMaclar[mId];
+                if (m.hafta === h && m.tarih) {
+                    const mTime = new Date(m.tarih).getTime();
+                    if (mTime > simdi && mTime < nearestMatchTime) {
+                        nearestMatchTime = mTime;
+                    }
+                }
+            });
+
+            if (nearestMatchTime === Infinity) {
+                timerElem.innerText = "⏳ Bu hafta için aktif başlama saati tanımlanmamış.";
+                timerElem.style.color = "#64748b";
                 return;
             }
 
-            const simdi = new Date().getTime();
-            const hedef = new Date(dbAyarlar.kilitTarihi).getTime();
-            const fark = hedef - simdi;
-
+            const fark = nearestMatchTime - simdi;
             if (fark <= 0) {
-                clearInterval(timerInterval);
-                timerElem.innerText = "⏳ Kalan Süre: Süre Doldu!";
+                timerElem.innerText = "⏳ İlk Maç Başladı / Süre Doldu!";
                 timerElem.style.color = "#dc2626";
-                const btnSubmit = document.getElementById('btnSubmitP1');
-                if(btnSubmit) btnSubmit.classList.add('hidden');
                 return;
             }
 
@@ -798,7 +819,7 @@
             const dakika = Math.floor((fark % (1000 * 60 * 60)) / (1000 * 60));
             const saniye = Math.floor((fark % (1000 * 60)) / 1000);
 
-            let sureMetni = "⏳ Kalan Süre: ";
+            let sureMetni = "⏳ En Yakın Maça Kalan Süre: ";
             if (gun > 0) sureMetni += `${gun} gün `;
             sureMetni += `${saat}s ${dakika}d ${saniye}s`;
 
@@ -922,67 +943,86 @@
     }
 
     function renderPage1() {
-        const h = dbAyarlar.aktifHafta;
+        const h = dbAyarlar.aktifHafta || "1. Hafta";
         document.getElementById('p1Title').innerText = `${h} Tahmin Paneli`;
         
         const simdi = new Date().getTime();
-        const kilitZamani = dbAyarlar.kilitTarihi ? new Date(dbAyarlar.kilitTarihi).getTime() : Infinity;
-        const zamanDoldu = simdi >= kilitZamani;
-
         const haftaKey = h.replace(/[^a-zA-Z0-9]/g, "");
         const onayliMi = (dbOnaylar[haftaKey] && dbOnaylar[haftaKey][currentUser]) ? true : false;
 
+        let containerHtml = "";
+        let tumMaclarBasladi = true;
+        let herhangiMacVar = false;
+
+        // Maçları tarihlerine göre kronolojik (erken olandan geç olana) sıralıyoruz
+        let haftaMaclari = Object.keys(dbMaclar)
+            .filter(mId => dbMaclar[mId].hafta === h)
+            .sort((a, b) => {
+                let tA = dbMaclar[a].tarih ? new Date(dbMaclar[a].tarih).getTime() : 0;
+                let tB = dbMaclar[b].tarih ? new Date(dbMaclar[b].tarih).getTime() : 0;
+                return tA - tB;
+            });
+
+        haftaMaclari.forEach(mId => {
+            const m = dbMaclar[mId];
+            herhangiMacVar = true;
+            const mZamani = m.tarih ? new Date(m.tarih).getTime() : Infinity;
+            const macBasladi = simdi >= mZamani;
+            
+            if (!macBasladi) {
+                tumMaclarBasladi = false;
+            }
+
+            let userEv = (dbTahminler[mId] && dbTahminler[mId][currentUser]) ? dbTahminler[mId][currentUser].ev : "";
+            let userDep = (dbTahminler[mId] && dbTahminler[mId][currentUser]) ? dbTahminler[mId][currentUser].dep : "";
+
+            let matchDisabled = (macBasladi || onayliMi || currentUser === "Yonetici") ? "disabled" : "";
+            
+            let dateFormatted = m.tarih ? new Date(m.tarih).toLocaleString('tr-TR', { dateStyle: 'short', timeStyle: 'short' }) : "Tarih Belirlenmedi";
+
+            containerHtml += `
+            <div class="match-card">
+                <div class="match-date-badge">🗓️ ${dateFormatted} ${macBasladi ? '(Başladı/Kilitli)' : ''}</div>
+                <div class="teams-header">
+                    <div class="team-box">
+                        <span>${m.ev}</span>
+                    </div>
+                    <div class="vs-badge">VS</div>
+                    <div class="team-box">
+                        <span>${m.dep}</span>
+                    </div>
+                </div>
+                <div class="score-box-wrapper">
+                    <div class="score-control">
+                        <button type="button" class="btn-counter" onclick="adjustScore('${mId}', 'ev', -1)" ${matchDisabled}>-</button>
+                        <input type="number" min="0" class="score-input-card p1-input" id="input_ev_${mId}" data-mid="${mId}" data-type="ev" value="${userEv}" ${matchDisabled}>
+                        <button type="button" class="btn-counter" onclick="adjustScore('${mId}', 'ev', 1)" ${matchDisabled}>+</button>
+                    </div>
+                    <span class="score-divider">:</span>
+                    <div class="score-control">
+                        <button type="button" class="btn-counter" onclick="adjustScore('${mId}', 'dep', -1)" ${matchDisabled}>-</button>
+                        <input type="number" min="0" class="score-input-card p1-input" id="input_dep_${mId}" data-mid="${mId}" data-type="dep" value="${userDep}" ${matchDisabled}>
+                        <button type="button" class="btn-counter" onclick="adjustScore('${mId}', 'dep', 1)" ${matchDisabled}>+</button>
+                    </div>
+                </div>
+            </div>`;
+        });
+
         let statusHtml = "";
-        if(zamanDoldu) {
-            statusHtml = `<span class="status-badge status-locked">🔒 Süre Doldu! (Tahmin Değiştirilemez)</span>`;
+        if(!herhangiMacVar) {
+            statusHtml = `<span class="status-badge status-locked">⚠️ Bu hafta için maç tanımlanmamış.</span>`;
+        } else if(tumMaclarBasladi) {
+            statusHtml = `<span class="status-badge status-locked">🔒 Bu haftanın tüm maçları başladı / süre doldu!</span>`;
         } else if(onayliMi) {
-            statusHtml = `<span class="status-badge status-locked">🔒 Tahminler Kaydedildi ve Kilitlendi</span>`;
+            statusHtml = `<span class="status-badge status-locked">🔒 Tahminleriniz Kaydedildi ve Kilitlendi</span>`;
         } else {
-            statusHtml = `<span class="status-badge status-open">🔓 Tahmin Alımı Açık</span>`;
+            statusHtml = `<span class="status-badge status-open">🔓 Tahmin Alımı Açık (Maç saatine kadar değiştirebilirsiniz)</span>`;
         }
         
         document.getElementById('p1Status').innerHTML = statusHtml;
-
-        let containerHtml = "";
-        Object.keys(dbMaclar).forEach(mId => {
-            const m = dbMaclar[mId];
-            if(m.hafta === h) {
-                let userEv = (dbTahminler[mId] && dbTahminler[mId][currentUser]) ? dbTahminler[mId][currentUser].ev : "";
-                let userDep = (dbTahminler[mId] && dbTahminler[mId][currentUser]) ? dbTahminler[mId][currentUser].dep : "";
-
-                let disabled = (zamanDoldu || onayliMi || currentUser === "Yonetici") ? "disabled" : "";
-
-                containerHtml += `
-                <div class="match-card">
-                    <div class="teams-header">
-                        <div class="team-box">
-                            <span>${m.ev}</span>
-                        </div>
-                        <div class="vs-badge">VS</div>
-                        <div class="team-box">
-                            <span>${m.dep}</span>
-                        </div>
-                    </div>
-                    <div class="score-box-wrapper">
-                        <div class="score-control">
-                            <button type="button" class="btn-counter" onclick="adjustScore('${mId}', 'ev', -1)" ${disabled}>-</button>
-                            <input type="number" min="0" class="score-input-card p1-input" id="input_ev_${mId}" data-mid="${mId}" data-type="ev" value="${userEv}" ${disabled}>
-                            <button type="button" class="btn-counter" onclick="adjustScore('${mId}', 'ev', 1)" ${disabled}>+</button>
-                        </div>
-                        <span class="score-divider">:</span>
-                        <div class="score-control">
-                            <button type="button" class="btn-counter" onclick="adjustScore('${mId}', 'dep', -1)" ${disabled}>-</button>
-                            <input type="number" min="0" class="score-input-card p1-input" id="input_dep_${mId}" data-mid="${mId}" data-type="dep" value="${userDep}" ${disabled}>
-                            <button type="button" class="btn-counter" onclick="adjustScore('${mId}', 'dep', 1)" ${disabled}>+</button>
-                        </div>
-                    </div>
-                </div>`;
-            }
-        });
-
         document.getElementById('p1MatchesContainer').innerHTML = containerHtml;
         
-        if(zamanDoldu || onayliMi || currentUser === "Yonetici") {
+        if(!herhangiMacVar || tumMaclarBasladi || onayliMi || currentUser === "Yonetici") {
             document.getElementById('btnSubmitP1').classList.add('hidden');
         } else {
             document.getElementById('btnSubmitP1').classList.remove('hidden');
@@ -992,77 +1032,75 @@
     }
 
     function renderPage2() {
-        const h = dbAyarlar.aktifHafta;
+        const h = dbAyarlar.aktifHafta || "1. Hafta";
         document.getElementById('p2Title').innerText = `${h} Canlı Tahmin Tablosu`;
         document.getElementById('chartTitle').innerText = `📊 ${h} Oyuncu Puan Dağılımı`;
         
         const simdi = new Date().getTime();
-        const kilitZamani = dbAyarlar.kilitTarihi ? new Date(dbAyarlar.kilitTarihi).getTime() : Infinity;
-        const zamanDoldu = simdi >= kilitZamani;
         const haftaKey = h.replace(/[^a-zA-Z0-9]/g, "");
-
         const currentOnayli = (dbOnaylar[haftaKey] && dbOnaylar[haftaKey][currentUser]);
-        const tahminlerAcik = currentOnayli || zamanDoldu || currentUser === "Yonetici";
 
         let haftalikPuanlar = { "Umut": 0, "ibrahim": 0, "Özkan": 0, "Onur": 0 };
         let gridHtml = "";
 
-        Object.keys(dbMaclar).forEach(mId => {
+        // Maçları tarihlerine göre kronolojik sıralıyoruz
+        let haftaMaclari = Object.keys(dbMaclar)
+            .filter(mId => dbMaclar[mId].hafta === h)
+            .sort((a, b) => {
+                let tA = dbMaclar[a].tarih ? new Date(dbMaclar[a].tarih).getTime() : 0;
+                let tB = dbMaclar[b].tarih ? new Date(dbMaclar[b].tarih).getTime() : 0;
+                return tA - tB;
+            });
+
+        haftaMaclari.forEach(mId => {
             const m = dbMaclar[mId];
-            if(m.hafta === h) {
-                let gercekEv = (m.gEv !== undefined) ? m.gEv : "";
-                let gercekDep = (m.gDep !== undefined) ? m.gDep : "";
-                let gercekSkor = (gercekEv !== "") ? `${gercekEv} - ${gercekDep}` : "vs";
+            let gercekEv = (m.gEv !== undefined) ? m.gEv : "";
+            let gercekDep = (m.gDep !== undefined) ? m.gDep : "";
+            let gercekSkor = (gercekEv !== "") ? `${gercekEv} - ${gercekDep}` : "vs";
 
-                const evB = big3.includes(m.ev);
-                const depB = big3.includes(m.dep);
-                let tagHtml = "";
-                if (evB && depB) {
-                    tagHtml = `<span class="live-card-tag tag-derby">🔥 DERBİ</span>`;
-                } else if (evB || depB) {
-                    tagHtml = `<span class="live-card-tag tag-surprise">⭐ SÜRPRİZ POTANSİYELİ</span>`;
-                }
+            const mZamani = m.tarih ? new Date(m.tarih).getTime() : Infinity;
+            const macBasladi = simdi >= mZamani;
 
-                let predBoxesHtml = "";
-                oyuncular.forEach(o => {
-                    let hasPred = (dbTahminler[mId] && dbTahminler[mId][o] && dbTahminler[mId][o].ev !== "" && dbTahminler[mId][o].dep !== "");
-                    let playerColor = oyuncuTekRenk[o];
+            const evB = big3.includes(m.ev);
+            const depB = big3.includes(m.dep);
+            let tagHtml = "";
+            if (evB && depB) {
+                tagHtml = `<span class="live-card-tag tag-derby">🔥 DERBİ</span>`;
+            } else if (evB || depB) {
+                tagHtml = `<span class="live-card-tag tag-surprise">⭐ SÜRPRİZ POTANSİYELİ</span>`;
+            }
 
-                    if(o === currentUser || tahminlerAcik) {
-                        if(hasPred) {
-                            let t = dbTahminler[mId][o];
-                            let tStr = `${t.ev} - ${t.dep}`;
-                            let pointsBadge = "";
+            let predBoxesHtml = "";
+            oyuncular.forEach(o => {
+                let hasPred = (dbTahminler[mId] && dbTahminler[mId][o] && dbTahminler[mId][o].ev !== "" && dbTahminler[mId][o].dep !== "");
+                let playerColor = oyuncuTekRenk[o];
 
-                            if(gercekEv !== "") {
-                                let calcP = puanHesapla(m.ev, m.dep, parseInt(gercekEv), parseInt(gercekDep), parseInt(t.ev), parseInt(t.dep));
-                                haftalikPuanlar[o] += calcP;
-                                pointsBadge = `<span class="points-pill ${calcP === 0 ? 'points-zero' : ''}">+${calcP}P</span>`;
-                            }
+                const gosterilsinMi = (o === currentUser) || macBasladi || (currentUser === "Yonetici") || currentOnayli;
 
-                            predBoxesHtml += `
-                                <div class="player-pred-box">
-                                    <div class="player-pred-info">
-                                        <div class="player-dot" style="background:${playerColor};"></div>
-                                        <span>${o}</span>
-                                    </div>
-                                    <div>
-                                        <span class="pred-val" style="margin-right:4px;">${tStr}</span>
-                                        ${pointsBadge}
-                                    </div>
-                                </div>
-                            `;
-                        } else {
-                            predBoxesHtml += `
-                                <div class="player-pred-box">
-                                    <div class="player-pred-info">
-                                        <div class="player-dot" style="background:${playerColor};"></div>
-                                        <span>${o}</span>
-                                    </div>
-                                    <span class="locked-icon">Girmedi</span>
-                                </div>
-                            `;
+                if(gosterilsinMi) {
+                    if(hasPred) {
+                        let t = dbTahminler[mId][o];
+                        let tStr = `${t.ev} - ${t.dep}`;
+                        let pointsBadge = "";
+
+                        if(gercekEv !== "") {
+                            let calcP = puanHesapla(m.ev, m.dep, parseInt(gercekEv), parseInt(gercekDep), parseInt(t.ev), parseInt(t.dep));
+                            haftalikPuanlar[o] += calcP;
+                            pointsBadge = `<span class="points-pill ${calcP === 0 ? 'points-zero' : ''}">+${calcP}P</span>`;
                         }
+
+                        predBoxesHtml += `
+                            <div class="player-pred-box">
+                                <div class="player-pred-info">
+                                    <div class="player-dot" style="background:${playerColor};"></div>
+                                    <span>${o}</span>
+                                </div>
+                                <div>
+                                    <span class="pred-val" style="margin-right:4px;">${tStr}</span>
+                                    ${pointsBadge}
+                                </div>
+                            </div>
+                        `;
                     } else {
                         predBoxesHtml += `
                             <div class="player-pred-box">
@@ -1070,30 +1108,40 @@
                                     <div class="player-dot" style="background:${playerColor};"></div>
                                     <span>${o}</span>
                                 </div>
-                                <span class="locked-icon">🔒 Gizli</span>
+                                <span class="locked-icon">Girmedi</span>
                             </div>
                         `;
                     }
-                });
-
-                gridHtml += `
-                    <div class="live-card">
-                        ${tagHtml}
-                        <div class="live-score-header">
-                            <div class="live-team">
-                                <span>${m.ev}</span>
+                } else {
+                    predBoxesHtml += `
+                        <div class="player-pred-box">
+                            <div class="player-pred-info">
+                                <div class="player-dot" style="background:${playerColor};"></div>
+                                <span>${o}</span>
                             </div>
-                            <div class="live-real-score">${gercekSkor}</div>
-                            <div class="live-team away">
-                                <span>${m.dep}</span>
-                            </div>
+                            <span class="locked-icon">🔒 Maç Saati Gizli</span>
                         </div>
-                        <div class="player-predictions-grid">
-                            ${predBoxesHtml}
+                    `;
+                }
+            });
+
+            gridHtml += `
+                <div class="live-card">
+                    ${tagHtml}
+                    <div class="live-score-header">
+                        <div class="live-team">
+                            <span>${m.ev}</span>
+                        </div>
+                        <div class="live-real-score">${gercekSkor}</div>
+                        <div class="live-team away">
+                            <span>${m.dep}</span>
                         </div>
                     </div>
-                `;
-            }
+                    <div class="player-predictions-grid">
+                        ${predBoxesHtml}
+                    </div>
+                </div>
+            `;
         });
 
         document.getElementById('p2MatchesGrid').innerHTML = gridHtml;
@@ -1106,8 +1154,7 @@
 
         let rankBadgesHtml = "";
         sortedWeekly.forEach((p, idx) => {
-            let isCurrentHidden = (p.name !== currentUser && !tahminlerAcik);
-            let valDisplay = isCurrentHidden ? "🔒" : `${p.puan} P`;
+            let valDisplay = `${p.puan} P`;
             rankBadgesHtml += `
                 <div class="p2-rank-badge">
                     <span style="font-size:11px; opacity:0.8;">${idx + 1}. ${p.name}</span>
@@ -1117,20 +1164,13 @@
         });
         document.getElementById('p2LiveRankings').innerHTML = rankBadgesHtml;
 
-        renderWeeklyChart(haftalikPuanlar, tahminlerAcik);
+        renderWeeklyChart(haftalikPuanlar, true);
     }
 
     function renderWeeklyChart(puanlar, gizliAcik) {
         const ctx = document.getElementById('weeklyChart').getContext('2d');
         
-        let chartData = oyuncular.map(o => {
-            if (o === currentUser || gizliAcik) {
-                return puanlar[o];
-            } else {
-                return 0;
-            }
-        });
-
+        let chartData = oyuncular.map(o => puanlar[o]);
         const bgColors = oyuncular.map(o => oyuncuTekRenk[o]);
 
         if (myChart) {
@@ -1181,10 +1221,7 @@
         for(let i=1; i<=34; i++) {
             let hName = `${i}. Hafta`;
             let hData = haftalikMatrix[hName];
-            let haftaKey = hName.replace(/[^a-zA-Z0-9]/g, "");
             
-            let currentOnayli = (dbOnaylar[haftaKey] && dbOnaylar[haftaKey][currentUser]);
-
             let kazananMetni = "-";
             let maxP = -1;
 
@@ -1204,18 +1241,13 @@
             oyuncular.forEach(o => {
                 let isWinner = hData.oynandi && maxP > 0 && hData[o] === maxP;
                 let bgStyle = isWinner ? 'style="background:#fef9c3; font-weight:bold;"' : '';
-                
-                if(o === currentUser || currentUser === "Yonetici" || currentOnayli) {
-                    cols += `<td ${bgStyle}>${hData[o]} P ${isWinner ? '👑' : ''}</td>`;
-                } else {
-                    cols += `<td style="color:gray; font-size:11px;">🔒 Gizli</td>`;
-                }
+                cols += `<td ${bgStyle}>${hData[o]} P ${isWinner ? '👑' : ''}</td>`;
             });
 
             tbody += `<tr>
                 <td><b>${i}. Hafta</b></td>
                 ${cols}
-                <td><span class="winner-tag">${(currentUser === "Yonetici" || currentOnayli) ? kazananMetni : "🔒 Gizli"}</span></td>
+                <td><span class="winner-tag">${kazananMetni}</span></td>
             </tr>`;
         }
 
@@ -1537,8 +1569,6 @@
                 let gercekEv = (m.gEv !== undefined) ? m.gEv : "";
                 let gercekDep = (m.gDep !== undefined) ? m.gDep : "";
                 let gercekSkor = (gercekEv !== "") ? `${gercekEv}-${gercekDep}` : "-";
-                let haftaKey = m.hafta.replace(/[^a-zA-Z0-9]/g, "");
-                let currentOnayli = (dbOnaylar[haftaKey] && dbOnaylar[haftaKey][currentUser]);
 
                 let playerCols = "";
                 oyuncular.forEach(o => {
@@ -1550,12 +1580,7 @@
                             pStr = puanHesapla(m.ev, m.dep, parseInt(gercekEv), parseInt(gercekDep), parseInt(t.ev), parseInt(t.dep));
                         }
                     }
-
-                    if(o === currentUser || currentUser === "Yonetici" || currentOnayli) {
-                        playerCols += `<td>${tStr}</td><td style="font-weight:bold; background:#f8fafc;">${pStr}</td>`;
-                    } else {
-                        playerCols += `<td style="color:gray; font-size:11px;">🔒</td><td style="color:gray; font-size:11px;">🔒</td>`;
-                    }
+                    playerCols += `<td>${tStr}</td><td style="font-weight:bold; background:#f8fafc;">${pStr}</td>`;
                 });
 
                 tbody += `<tr>
@@ -1575,25 +1600,36 @@
         p4Select.dataset.userChanged = "true";
         const h = p4Select.value;
         
-        let tbody = "";
-        Object.keys(dbMaclar).forEach(mId => {
-            const m = dbMaclar[mId];
-            if(m.hafta === h) {
-                let gEv = (m.gEv !== undefined) ? m.gEv : "";
-                let gDep = (m.gDep !== undefined) ? m.gDep : "";
+        // Admin panelinde maçları tarihlerine göre kronolojik sıralayarak listeliyoruz
+        let haftaMaclari = Object.keys(dbMaclar)
+            .filter(mId => dbMaclar[mId].hafta === h)
+            .sort((a, b) => {
+                let tA = dbMaclar[a].tarih ? new Date(dbMaclar[a].tarih).getTime() : 0;
+                let tB = dbMaclar[b].tarih ? new Date(dbMaclar[b].tarih).getTime() : 0;
+                return tA - tB;
+            });
 
-                tbody += `<tr>
-                    <td><div class="team-cell"><span>${m.ev}</span></div></td>
-                    <td>
-                        <div class="score-inputs">
-                            <input type="number" class="tbl-input p4-input" data-mid="${mId}" data-type="gEv" value="${gEv}">
-                            <span>-</span>
-                            <input type="number" class="tbl-input p4-input" data-mid="${mId}" data-type="gDep" value="${gDep}">
-                        </div>
-                    </td>
-                    <td><div class="team-cell"><span>${m.dep}</span></div></td>
-                </tr>`;
-            }
+        let tbody = "";
+        haftaMaclari.forEach(mId => {
+            const m = dbMaclar[mId];
+            let gEv = (m.gEv !== undefined) ? m.gEv : "";
+            let gDep = (m.gDep !== undefined) ? m.gDep : "";
+            let tarihVal = m.tarih ? m.tarih : "";
+
+            tbody += `<tr>
+                <td><div class="team-cell"><span>${m.ev}</span></div></td>
+                <td>
+                    <input type="datetime-local" class="modal-input p4-tarih" data-mid="${mId}" value="${tarihVal}" style="margin:0; padding:6px; font-size:12px;">
+                </td>
+                <td>
+                    <div class="score-inputs">
+                        <input type="number" class="tbl-input p4-input-ev" data-mid="${mId}" value="${gEv}">
+                        <span>-</span>
+                        <input type="number" class="tbl-input p4-input-dep" data-mid="${mId}" value="${gDep}">
+                    </div>
+                </td>
+                <td><div class="team-cell"><span>${m.dep}</span></div></td>
+            </tr>`;
         });
 
         document.getElementById('p4TableBody').innerHTML = tbody;
@@ -1605,19 +1641,19 @@
             return;
         }
 
+        const h = dbAyarlar.aktifHafta || "1. Hafta";
         const simdi = new Date().getTime();
-        const kilitZamani = dbAyarlar.kilitTarihi ? new Date(dbAyarlar.kilitTarihi).getTime() : Infinity;
-        if(simdi >= kilitZamani) {
-            alert("Süre dolduğu için tahmin verilemez!");
-            return;
-        }
-
-        const h = dbAyarlar.aktifHafta;
         let eksikMaclar = [];
+        let kilitliMacVarMi = false;
 
         Object.keys(dbMaclar).forEach(mId => {
             const m = dbMaclar[mId];
             if (m.hafta === h) {
+                const mZamani = m.tarih ? new Date(m.tarih).getTime() : Infinity;
+                if (simdi >= mZamani) {
+                    kilitliMacVarMi = true;
+                }
+
                 const evInput = document.getElementById(`input_ev_${mId}`);
                 const depInput = document.getElementById(`input_dep_${mId}`);
                 
@@ -1629,6 +1665,11 @@
                 }
             }
         });
+
+        if (kilitliMacVarMi) {
+            alert("Bazı maçların başlama saati geçtiği için tahmin gönderilemez/güncellenemez!");
+            return;
+        }
 
         if (eksikMaclar.length > 0) {
             alert("Lütfen tüm maçlara skor giriniz!\n\nEksik maçlar:\n• " + eksikMaclar.join("\n• "));
@@ -1677,33 +1718,43 @@
             });
     }
 
-    function submitGercekSkorlar() {
-        const onay = confirm("Girilen gerçek maç skorlarını kaydetmek istediğinize emin misiniz?");
+    function submitMacVeSkorlar() {
+        const onay = confirm("Maç tarihleri ve gerçek skor değişikliklerini kaydetmek istediğinize emin misiniz?");
         if (!onay) return;
 
-        const inputs = document.querySelectorAll('.p4-input');
         let updates = {};
         
-        inputs.forEach(inp => {
+        const tarihInputs = document.querySelectorAll('.p4-tarih');
+        tarihInputs.forEach(inp => {
             const mId = inp.dataset.mid;
-            const type = inp.dataset.type;
-            const val = inp.value.trim();
-            updates[`maclar/${mId}/${type}`] = val;
+            updates[`maclar/${mId}/tarih`] = inp.value;
+        });
+
+        const evInputs = document.querySelectorAll('.p4-input-ev');
+        evInputs.forEach(inp => {
+            const mId = inp.dataset.mid;
+            updates[`maclar/${mId}/gEv`] = inp.value.trim();
+        });
+
+        const depInputs = document.querySelectorAll('.p4-input-dep');
+        depInputs.forEach(inp => {
+            const mId = inp.dataset.mid;
+            updates[`maclar/${mId}/gDep`] = inp.value.trim();
         });
 
         db.ref().update(updates).then(() => {
-            alert("✅ Gerçek maç skorları başarıyla kaydedildi!");
+            alert("✅ Maç tarihleri ve skorlar başarıyla güncellendi!");
+            renderPage4(); // Arayüzü güncel verilerle yenile
         }).catch(err => alert("Hata: " + err.message));
     }
 
     function adminHaftaGuncelle() {
-        const onay = confirm("Aktif hafta ve kilit tarihini güncellemek istediğinize emin misiniz?");
+        const onay = confirm("Aktif haftayı güncellemek istediğinize emin misiniz?");
         if (!onay) return;
 
         const h = document.getElementById('adminAktifHafta').value;
-        const kt = document.getElementById('adminKilitTarihi').value;
-        db.ref('ayarlar').update({ aktifHafta: h, kilitTarihi: kt }).then(() => {
-            alert("✅ Aktif hafta bilgileri güncellendi.");
+        db.ref('ayarlar').update({ aktifHafta: h }).then(() => {
+            alert("✅ Aktif hafta güncellendi.");
         });
     }
 
