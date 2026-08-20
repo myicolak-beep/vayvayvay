@@ -14,6 +14,33 @@
         .container { max-width: 1150px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
         h2, h3, h4 { text-align: center; color: #1e293b; margin-top: 0; }
         
+        /* GİRİŞ SAYFASI ÖZEL FAN ALANI */
+        .fan-banner {
+            text-align: center;
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 10px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            transition: all 0.3s ease;
+        }
+        .fan-logo {
+            width: 90px;
+            height: 90px;
+            object-fit: contain;
+            margin-bottom: 8px;
+            filter: drop-shadow(0px 4px 6px rgba(0,0,0,0.15));
+            transition: transform 0.3s ease;
+        }
+        .fan-logo:hover {
+            transform: scale(1.08);
+        }
+        .fan-slogan {
+            font-size: 15px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+        }
+
         /* 2 SÜTUNLU DERLİ TOPLU MENÜ YAPISI */
         .nav-menu { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 20px; }
         .nav-btn { padding: 10px 14px; border: none; background: #e2e8f0; color: #334155; font-weight: bold; border-radius: 6px; cursor: pointer; transition: 0.2s; font-size: 13px; text-align: center; }
@@ -336,7 +363,23 @@
             font-size: 11px;
         }
         .points-zero { background: #f1f5f9; color: #94a3b8; }
-        .locked-icon { color: #94a3b8; font-size: 11px; font-style: italic; }
+        
+        .status-badge-entered {
+            background: #dcfce7;
+            color: #15803d;
+            font-size: 11px;
+            font-weight: 800;
+            padding: 2px 6px;
+            border-radius: 6px;
+        }
+        .status-badge-not-entered {
+            background: #fee2e2;
+            color: #b91c1c;
+            font-size: 11px;
+            font-weight: 800;
+            padding: 2px 6px;
+            border-radius: 6px;
+        }
 
         /* DETAYLI İSTATİSTİK KARTLARI */
         .analytics-container { display: flex; flex-direction: column; gap: 25px; }
@@ -374,11 +417,11 @@
 <body>
 
 <!-- GİRİŞ EKRANI -->
-<div class="container" id="loginScreen" style="max-width:400px; margin-top: 50px;">
+<div class="container" id="loginScreen" style="max-width:400px; margin-top: 30px;">
     <h2>🏆 Süper Lig Tahmin Portalı</h2>
     <div>
         <label><b>Kullanıcı Seçin:</b></label>
-        <select id="loginUser" style="width:100%; margin: 8px 0 15px 0; padding: 10px; border-radius:6px; border:1px solid #ccc; font-size:14px;">
+        <select id="loginUser" onchange="updateLoginFanBanner()" style="width:100%; margin: 8px 0 15px 0; padding: 10px; border-radius:6px; border:1px solid #ccc; font-size:14px;">
             <option value="">-- İsminizi Seçin --</option>
             <option value="Yonetici">Yönetici (Admin)</option>
             <option value="Umut">Umut</option>
@@ -391,6 +434,12 @@
         <input type="password" id="loginPass" placeholder="Şifrenizi Girin" style="width:100%; margin: 8px 0 15px 0; padding: 10px; border-radius:6px; border:1px solid #ccc; font-size:14px;">
         
         <button type="button" onclick="login()" style="width:100%; padding:12px; font-size: 15px; background:#2563eb; color:white;">Giriş Yap</button>
+
+        <!-- DİNAMİK LOGO VE SLOGAN ALANI -->
+        <div id="fanBanner" class="fan-banner">
+            <img id="fanLogoImg" class="fan-logo" src="https://upload.wikimedia.org/wikipedia/commons/2/20/Galatasaray_Sports_Club_Logo.svg" alt="Takım Logosu">
+            <div id="fanSloganText" class="fan-slogan" style="color:#a80000;">🏆 Son Şampiyon Galatasaray 🏆</div>
+        </div>
     </div>
 </div>
 
@@ -424,13 +473,21 @@
             <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
                 <div>
                     <label style="font-size:13px;"><b>Aktif Hafta:</b></label>
-                    <select id="adminAktifHafta" style="padding:4px;"></select>
+                    <select id="adminAktifHafta" style="padding:4px;" onchange="onAdminHaftaChange()"></select>
                 </div>
                 <button type="button" onclick="adminHaftaGuncelle()" style="background:#d97706; color:white; padding:6px 12px;">Aktif Haftayı Kaydet</button>
             </div>
             <div>
                 <button type="button" onclick="resetTestData()" style="background:#ef4444; color:white; padding:6px 12px;" title="Tüm oyuncu tahminlerini ve onaylarını sıfırlar">🧹 Test Verilerini Temizle</button>
             </div>
+        </div>
+
+        <!-- HAFTALIK TAHMİN KİLİT SAATİ / SÜRESİ BELİRLEME -->
+        <div style="padding-top: 10px; border-top: 1px dashed #f59e0b; margin-bottom: 12px; display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+            <label style="font-size:13px;"><b>⏱️ Haftalık Tahmin Kilit Saati (Tahminlerin Açılacağı An):</b></label>
+            <input type="datetime-local" id="adminKilitTarihi" style="padding:4px; border-radius:4px; border:1px solid #ccc; font-size:13px;">
+            <button type="button" onclick="adminKilitTarihiKaydet()" style="background:#2563eb; color:white; padding:6px 12px; font-size:12px; border-radius:4px;">⏱️ Kilit Saatini Kaydet</button>
+            <span style="font-size:11px; color:#b45309;">* Bu tarihe kadar ADMIN dahil kimse başkasının skor tahminini göremez.</span>
         </div>
 
         <div style="padding-top: 10px; border-top: 1px dashed #f59e0b; display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
@@ -497,7 +554,7 @@
     <!-- HAFTALIK ÖZET PUANLAR VE HAFTANIN BİRİNCİSİ GRAFİĞİ -->
     <div id="page5" class="page-content hidden">
         <h3 style="text-align:center; margin-bottom:5px;">📅 Haftalık Toplam Tahmin Puanları</h3>
-        <p style="text-align:center; font-size:12px; color:gray; margin-bottom:15px;">Tahmin girmediğiniz haftalarda diğer oyuncuların puanları kilitli görünür.</p>
+        <p style="text-align:center; font-size:12px; color:gray; margin-bottom:15px;">Tahmin süresi bitene kadar diğer oyuncuların detaylı tahminleri gizli kalır.</p>
         <table>
             <thead>
                 <tr>
@@ -668,10 +725,28 @@
     let dbMaclar = {};
     let dbTahminler = {};
     let dbAyarlar = { aktifHafta: "1. Hafta" };
+    let dbKilitTarihleri = {}; // { "1. Hafta": "2023-10-10T19:00" }
     let dbOnaylar = {};
     let timerInterval = null;
     let myChart = null;
     let winnerChartInstance = null;
+
+    // GİRİŞ SAYFASI LOGO GÜNCELLEME
+    function updateLoginFanBanner() {
+        const selectedUser = document.getElementById('loginUser').value;
+        const logoImg = document.getElementById('fanLogoImg');
+        const sloganText = document.getElementById('fanSloganText');
+
+        if (selectedUser === "Özkan") {
+            logoImg.src = "https://upload.wikimedia.org/wikipedia/tr/8/86/Fenerbah%C3%A7e_SK.png";
+            sloganText.innerText = "🟡🔵 O Sene Bu Sene! 🟡🔵";
+            sloganText.style.color = "#002d72";
+        } else {
+            logoImg.src = "https://upload.wikimedia.org/wikipedia/commons/2/20/Galatasaray_Sports_Club_Logo.svg";
+            sloganText.innerText = "🏆 Son Şampiyon Galatasaray 🏆";
+            sloganText.style.color = "#a80000";
+        }
+    }
 
     function login() {
         const user = document.getElementById('loginUser').value;
@@ -754,6 +829,7 @@
             dbMaclar = data.maclar || {};
             dbTahminler = data.tahminler || {};
             dbAyarlar = data.ayarlar || { aktifHafta: "1. Hafta" };
+            dbKilitTarihleri = data.kilitTarihleri || {};
             dbOnaylar = data.onaylar || {};
 
             if(ahSelect) ahSelect.value = dbAyarlar.aktifHafta || "1. Hafta";
@@ -761,6 +837,9 @@
             if(!p4Select.dataset.userChanged) {
                 p4Select.value = dbAyarlar.aktifHafta || "1. Hafta";
             }
+
+            // Admin kilit tarihi inputunu doldur
+            onAdminHaftaChange();
 
             updateLeaderboard();
             renderPage1();
@@ -772,12 +851,30 @@
         });
     }
 
+    function onAdminHaftaChange() {
+        const selectedHafta = document.getElementById('adminAktifHafta').value;
+        const inputElem = document.getElementById('adminKilitTarihi');
+        if(inputElem) {
+            inputElem.value = dbKilitTarihleri[selectedHafta] || "";
+        }
+    }
+
     function switchPage(pageNum) {
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
         document.querySelectorAll('.page-content').forEach(p => p.classList.add('hidden'));
 
         document.getElementById(`btnPage${pageNum}`).classList.add('active');
         document.getElementById(`page${pageNum}`).classList.remove('hidden');
+    }
+
+    function isHaftaKilitli(haftaIsmi) {
+        // Belirtilen hafta için tahmin süresi doldu mu?
+        const kilitTarihStr = dbKilitTarihleri[haftaIsmi];
+        if(!kilitTarihStr) return false;
+
+        const kilitTime = new Date(kilitTarihStr).getTime();
+        const simdi = new Date().getTime();
+        return simdi >= kilitTime;
     }
 
     function startCountdown() {
@@ -788,28 +885,36 @@
             if (!timerElem) return;
 
             const h = dbAyarlar.aktifHafta;
-            let nearestMatchTime = Infinity;
             const simdi = new Date().getTime();
 
-            Object.keys(dbMaclar).forEach(mId => {
-                const m = dbMaclar[mId];
-                if (m.hafta === h && m.tarih) {
-                    const mTime = new Date(m.tarih).getTime();
-                    if (mTime > simdi && mTime < nearestMatchTime) {
-                        nearestMatchTime = mTime;
-                    }
-                }
-            });
+            // Önce Admin'in tanımladığı Kilit Tarihine bak
+            const adminKilitStr = dbKilitTarihleri[h];
+            let kilitTargetTime = Infinity;
 
-            if (nearestMatchTime === Infinity) {
-                timerElem.innerText = "⏳ Bu hafta için aktif başlama saati tanımlanmamış.";
+            if (adminKilitStr) {
+                kilitTargetTime = new Date(adminKilitStr).getTime();
+            } else {
+                // Admin girmediyse en yakın maç saatini hedefle
+                Object.keys(dbMaclar).forEach(mId => {
+                    const m = dbMaclar[mId];
+                    if (m.hafta === h && m.tarih) {
+                        const mTime = new Date(m.tarih).getTime();
+                        if (mTime > simdi && mTime < kilitTargetTime) {
+                            kilitTargetTime = mTime;
+                        }
+                    }
+                });
+            }
+
+            if (kilitTargetTime === Infinity) {
+                timerElem.innerText = "⏳ Bu hafta için aktif son tahmin saati tanımlanmamış.";
                 timerElem.style.color = "#64748b";
                 return;
             }
 
-            const fark = nearestMatchTime - simdi;
+            const fark = kilitTargetTime - simdi;
             if (fark <= 0) {
-                timerElem.innerText = "⏳ İlk Maç Başladı / Süre Doldu!";
+                timerElem.innerText = "🔒 Tahmin Süresi Doldu! (Skorlar Herkese Açıldı)";
                 timerElem.style.color = "#dc2626";
                 return;
             }
@@ -819,8 +924,8 @@
             const dakika = Math.floor((fark % (1000 * 60 * 60)) / (1000 * 60));
             const saniye = Math.floor((fark % (1000 * 60)) / 1000);
 
-            let sureMetni = "⏳ En Yakın Maça Kalan Süre: ";
-            if (gun > 0) sureMetni += `${gun} gün `;
+            let sureMetni = "⏳ Tahminlerin Kilitlenmesine & Skorların Açılmasına Kalan: ";
+            if (gun > 0) sureMetni += `${gun}gün `;
             sureMetni += `${saat}s ${dakika}d ${saniye}s`;
 
             timerElem.innerText = sureMetni;
@@ -868,7 +973,9 @@
                 oyuncular.forEach(o => {
                     if(dbTahminler[mId] && dbTahminler[mId][o]) {
                         let t = dbTahminler[mId][o];
-                        haftalikMatrix[m.hafta][o] += puanHesapla(m.ev, m.dep, parseInt(m.gEv), parseInt(m.gDep), parseInt(t.ev), parseInt(t.dep));
+                        if(t.ev !== "" && t.dep !== "") {
+                            haftalikMatrix[m.hafta][o] += puanHesapla(m.ev, m.dep, parseInt(m.gEv), parseInt(m.gDep), parseInt(t.ev), parseInt(t.dep));
+                        }
                     }
                 });
             }
@@ -950,11 +1057,12 @@
         const haftaKey = h.replace(/[^a-zA-Z0-9]/g, "");
         const onayliMi = (dbOnaylar[haftaKey] && dbOnaylar[haftaKey][currentUser]) ? true : false;
 
+        const kilitliHafta = isHaftaKilitli(h);
+
         let containerHtml = "";
         let tumMaclarBasladi = true;
         let herhangiMacVar = false;
 
-        // Maçları tarihlerine göre kronolojik (erken olandan geç olana) sıralıyoruz
         let haftaMaclari = Object.keys(dbMaclar)
             .filter(mId => dbMaclar[mId].hafta === h)
             .sort((a, b) => {
@@ -976,7 +1084,7 @@
             let userEv = (dbTahminler[mId] && dbTahminler[mId][currentUser]) ? dbTahminler[mId][currentUser].ev : "";
             let userDep = (dbTahminler[mId] && dbTahminler[mId][currentUser]) ? dbTahminler[mId][currentUser].dep : "";
 
-            let matchDisabled = (macBasladi || onayliMi || currentUser === "Yonetici") ? "disabled" : "";
+            let matchDisabled = (macBasladi || kilitliHafta || onayliMi || currentUser === "Yonetici") ? "disabled" : "";
             
             let dateFormatted = m.tarih ? new Date(m.tarih).toLocaleString('tr-TR', { dateStyle: 'short', timeStyle: 'short' }) : "Tarih Belirlenmedi";
 
@@ -1011,18 +1119,18 @@
         let statusHtml = "";
         if(!herhangiMacVar) {
             statusHtml = `<span class="status-badge status-locked">⚠️ Bu hafta için maç tanımlanmamış.</span>`;
-        } else if(tumMaclarBasladi) {
-            statusHtml = `<span class="status-badge status-locked">🔒 Bu haftanın tüm maçları başladı / süre doldu!</span>`;
+        } else if(kilitliHafta || tumMaclarBasladi) {
+            statusHtml = `<span class="status-badge status-locked">🔒 Süre Doldu! Haftalık Tahminler Kilitlendi</span>`;
         } else if(onayliMi) {
             statusHtml = `<span class="status-badge status-locked">🔒 Tahminleriniz Kaydedildi ve Kilitlendi</span>`;
         } else {
-            statusHtml = `<span class="status-badge status-open">🔓 Tahmin Alımı Açık (Maç saatine kadar değiştirebilirsiniz)</span>`;
+            statusHtml = `<span class="status-badge status-open">🔓 Tahmin Alımı Açık (Süre dolana kadar değiştirebilirsiniz)</span>`;
         }
         
         document.getElementById('p1Status').innerHTML = statusHtml;
         document.getElementById('p1MatchesContainer').innerHTML = containerHtml;
         
-        if(!herhangiMacVar || tumMaclarBasladi || onayliMi || currentUser === "Yonetici") {
+        if(!herhangiMacVar || kilitliHafta || tumMaclarBasladi || onayliMi || currentUser === "Yonetici") {
             document.getElementById('btnSubmitP1').classList.add('hidden');
         } else {
             document.getElementById('btnSubmitP1').classList.remove('hidden');
@@ -1037,13 +1145,11 @@
         document.getElementById('chartTitle').innerText = `📊 ${h} Oyuncu Puan Dağılımı`;
         
         const simdi = new Date().getTime();
-        const haftaKey = h.replace(/[^a-zA-Z0-9]/g, "");
-        const currentOnayli = (dbOnaylar[haftaKey] && dbOnaylar[haftaKey][currentUser]);
+        const haftaKilitli = isHaftaKilitli(h);
 
         let haftalikPuanlar = { "Umut": 0, "ibrahim": 0, "Özkan": 0, "Onur": 0 };
         let gridHtml = "";
 
-        // Maçları tarihlerine göre kronolojik sıralıyoruz
         let haftaMaclari = Object.keys(dbMaclar)
             .filter(mId => dbMaclar[mId].hafta === h)
             .sort((a, b) => {
@@ -1075,9 +1181,13 @@
                 let hasPred = (dbTahminler[mId] && dbTahminler[mId][o] && dbTahminler[mId][o].ev !== "" && dbTahminler[mId][o].dep !== "");
                 let playerColor = oyuncuTekRenk[o];
 
-                const gosterilsinMi = (o === currentUser) || macBasladi || (currentUser === "Yonetici") || currentOnayli;
+                // GÖSTERME KURALI:
+                // 1) Kendi tahmini ise HER ZAMAN görsün.
+                // 2) Süre dolduysa (haftaKilitli) veya Maç başladıysa -> HER KESİN tahmini görünsün (Admin dahil).
+                // 3) Süre dolmadıysa -> Başkasının ve Admin'in görmesine izin verilmez! Sadece "Girildi/Girmedi" gösterilir.
+                const skorGosterilsinMi = (o === currentUser) || haftaKilitli || macBasladi;
 
-                if(gosterilsinMi) {
+                if(skorGosterilsinMi) {
                     if(hasPred) {
                         let t = dbTahminler[mId][o];
                         let tStr = `${t.ev} - ${t.dep}`;
@@ -1108,20 +1218,33 @@
                                     <div class="player-dot" style="background:${playerColor};"></div>
                                     <span>${o}</span>
                                 </div>
-                                <span class="locked-icon">Girmedi</span>
+                                <span class="status-badge-not-entered">Girilmedi</span>
                             </div>
                         `;
                     }
                 } else {
-                    predBoxesHtml += `
-                        <div class="player-pred-box">
-                            <div class="player-pred-info">
-                                <div class="player-dot" style="background:${playerColor};"></div>
-                                <span>${o}</span>
+                    // SÜRE BİTMEDİ: Tahmin skoru gizli tutuluyor
+                    if(hasPred) {
+                        predBoxesHtml += `
+                            <div class="player-pred-box">
+                                <div class="player-pred-info">
+                                    <div class="player-dot" style="background:${playerColor};"></div>
+                                    <span>${o}</span>
+                                </div>
+                                <span class="status-badge-entered">🟢 Girildi (Gizli)</span>
                             </div>
-                            <span class="locked-icon">🔒 Maç Saati Gizli</span>
-                        </div>
-                    `;
+                        `;
+                    } else {
+                        predBoxesHtml += `
+                            <div class="player-pred-box">
+                                <div class="player-pred-info">
+                                    <div class="player-dot" style="background:${playerColor};"></div>
+                                    <span>${o}</span>
+                                </div>
+                                <span class="status-badge-not-entered">🔴 Girilmedi</span>
+                            </div>
+                        `;
+                    }
                 }
             });
 
@@ -1411,7 +1534,7 @@
                             stats[p1].h2h[p2].loss++;
                         } else {
                             stats[p1].h2h[p2].draw++;
-                            stats[p2].h2h[p1].draw++;
+                            stats[p1].h2h[p2].draw++;
                         }
                     }
                 }
@@ -1461,7 +1584,6 @@
             
             let activeWeeklyPoints = oynananHaftalar.map(h => s.haftaPuanlari[h]);
             let enIyiHafta = activeWeeklyPoints.length > 0 ? Math.max(...activeWeeklyPoints) : 0;
-            let enKotuHafta = activeWeeklyPoints.length > 0 ? Math.min(...activeWeeklyPoints) : 0;
 
             let favTeam = "-", kabusTeam = "-";
             let maxTP = -1, minTP = 999;
@@ -1570,16 +1692,30 @@
                 let gercekDep = (m.gDep !== undefined) ? m.gDep : "";
                 let gercekSkor = (gercekEv !== "") ? `${gercekEv}-${gercekDep}` : "-";
 
+                const simdi = new Date().getTime();
+                const mZamani = m.tarih ? new Date(m.tarih).getTime() : Infinity;
+                const macBasladi = simdi >= mZamani;
+                const haftaKilitli = isHaftaKilitli(m.hafta);
+
                 let playerCols = "";
                 oyuncular.forEach(o => {
                     let tStr = "-", pStr = "-";
-                    if(dbTahminler[mId] && dbTahminler[mId][o]) {
-                        let t = dbTahminler[mId][o];
-                        tStr = `${t.ev}-${t.dep}`;
-                        if(gercekEv !== "") {
-                            pStr = puanHesapla(m.ev, m.dep, parseInt(gercekEv), parseInt(gercekDep), parseInt(t.ev), parseInt(t.dep));
+                    let hasPred = (dbTahminler[mId] && dbTahminler[mId][o] && dbTahminler[mId][o].ev !== "" && dbTahminler[mId][o].dep !== "");
+                    
+                    const gosterilsinMi = (o === currentUser) || haftaKilitli || macBasladi;
+
+                    if(gosterilsinMi) {
+                        if(hasPred) {
+                            let t = dbTahminler[mId][o];
+                            tStr = `${t.ev}-${t.dep}`;
+                            if(gercekEv !== "") {
+                                pStr = puanHesapla(m.ev, m.dep, parseInt(gercekEv), parseInt(gercekDep), parseInt(t.ev), parseInt(t.dep));
+                            }
                         }
+                    } else {
+                        tStr = hasPred ? "🟢 Girildi" : "🔴 Girilmedi";
                     }
+
                     playerCols += `<td>${tStr}</td><td style="font-weight:bold; background:#f8fafc;">${pStr}</td>`;
                 });
 
@@ -1600,7 +1736,6 @@
         p4Select.dataset.userChanged = "true";
         const h = p4Select.value;
         
-        // Admin panelinde maçları tarihlerine göre kronolojik sıralayarak listeliyoruz
         let haftaMaclari = Object.keys(dbMaclar)
             .filter(mId => dbMaclar[mId].hafta === h)
             .sort((a, b) => {
@@ -1645,6 +1780,11 @@
         const simdi = new Date().getTime();
         let eksikMaclar = [];
         let kilitliMacVarMi = false;
+
+        if(isHaftaKilitli(h)) {
+            alert("Bu hafta için belirlenen son tahmin süresi doldu! Değişiklik yapılamaz.");
+            return;
+        }
 
         Object.keys(dbMaclar).forEach(mId => {
             const m = dbMaclar[mId];
@@ -1744,7 +1884,7 @@
 
         db.ref().update(updates).then(() => {
             alert("✅ Maç tarihleri ve skorlar başarıyla güncellendi!");
-            renderPage4(); // Arayüzü güncel verilerle yenile
+            renderPage4();
         }).catch(err => alert("Hata: " + err.message));
     }
 
@@ -1755,6 +1895,22 @@
         const h = document.getElementById('adminAktifHafta').value;
         db.ref('ayarlar').update({ aktifHafta: h }).then(() => {
             alert("✅ Aktif hafta güncellendi.");
+        });
+    }
+
+    function adminKilitTarihiKaydet() {
+        const selectedHafta = document.getElementById('adminAktifHafta').value;
+        const dtVal = document.getElementById('adminKilitTarihi').value;
+
+        if(!dtVal) {
+            alert("Lütfen geçerli bir tarih ve saat giriniz!");
+            return;
+        }
+
+        db.ref(`kilitTarihleri/${selectedHafta}`).set(dtVal).then(() => {
+            alert(`✅ ${selectedHafta} için tahmin kilit saati başarıyla kaydedildi: ${dtVal}`);
+        }).catch(err => {
+            alert("Hata oluştu: " + err.message);
         });
     }
 
