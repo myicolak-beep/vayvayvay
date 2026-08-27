@@ -1,305 +1,63 @@
-```html
 <!DOCTYPE html>
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Var Mısınız İddaaya</title>
+    <title>Süper Lig Tahmin Portalı</title>
     <!-- Firebase CDN -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* TEMA DEĞİŞKENLERİ (CSS VARS) */
-        :root {
-            --bg-color: #f0f4f8;
-            --primary-color: #2563eb;
-            --primary-hover: #1d4ed8;
-            --header-bg: #1e293b;
-            --card-border: #e2e8f0;
-            --accent-color: #d97706;
-            --text-color: #1e293b;
-        }
-
-        /* TEMA 1: GALATASARAY (SARI-KIRMIZI) */
-        body.theme-gs {
-            --bg-color: #fdf2f2;
-            --primary-color: #a80000;
-            --primary-hover: #800000;
-            --header-bg: #a80000;
-            --card-border: #fca5a5;
-            --accent-color: #f59e0b;
-            --text-color: #450a0a;
-        }
-
-        /* TEMA 2: FENERBAHÇE (SARI-LACİVERT) */
-        body.theme-fb {
-            --bg-color: #f0f4ff;
-            --primary-color: #002d72;
-            --primary-hover: #001f52;
-            --header-bg: #002d72;
-            --card-border: #93c5fd;
-            --accent-color: #facc15;
-            --text-color: #0f172a;
-        }
-
-        /* TEMA 3: TÜRKİYE (KIRMIZI-BEYAZ) */
-        body.theme-tr {
-            --bg-color: #fef2f2;
-            --primary-color: #e11d48;
-            --primary-hover: #be123c;
-            --header-bg: #e11d48;
-            --card-border: #fecdd3;
-            --accent-color: #9f1239;
-            --text-color: #881337;
-        }
-
-        /* TEMA 4: KLASİK (MAVİ-GRİ) */
-        body.theme-classic {
-            --bg-color: #f0f4f8;
-            --primary-color: #2563eb;
-            --primary-hover: #1d4ed8;
-            --header-bg: #1e293b;
-            --card-border: #cbd5e1;
-            --accent-color: #d97706;
-            --text-color: #1e293b;
-        }
-
-        body { 
-            font-family: 'Segoe UI', Arial, sans-serif; 
-            background-color: var(--bg-color); 
-            margin: 0; 
-            padding: 15px; 
-            transition: background-color 0.3s ease;
-        }
-
-        .container { 
-            max-width: 1150px; 
-            margin: 0 auto; 
-            background: white; 
-            padding: 20px; 
-            border-radius: 10px; 
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
-            position: relative;
-        }
-
-        h2, h3, h4 { text-align: center; color: var(--text-color); margin-top: 0; }
-
-        /* HEADER & HAMBURGER MENÜ STİLLERİ */
-        .app-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid var(--card-border);
-        }
-
-        .hamburger-btn {
-            background: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 10px 14px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 20px;
-            line-height: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            transition: background 0.2s;
-        }
-
-        .hamburger-btn:hover {
-            background: var(--primary-hover);
-        }
-
-        /* SAĞDAN AÇILAN YAN MENÜ (SIDEBAR) */
-        .sidebar-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            z-index: 1001;
-            display: none;
-        }
-
-        .sidebar-overlay.active {
-            display: block;
-        }
-
-        .sidebar-menu {
-            position: fixed;
-            top: 0;
-            right: -300px;
-            width: 280px;
-            height: 100%;
-            background: #ffffff;
-            box-shadow: -4px 0 15px rgba(0,0,0,0.15);
-            z-index: 1002;
-            transition: right 0.3s ease;
-            display: flex;
-            flex-direction: column;
-            padding: 20px;
-            box-sizing: border-box;
-        }
-
-        .sidebar-menu.active {
-            right: 0;
-        }
-
-        .sidebar-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 2px solid var(--card-border);
-            padding-bottom: 10px;
-            margin-bottom: 15px;
-        }
-
-        .sidebar-close-btn {
-            background: none;
-            border: none;
-            font-size: 22px;
-            font-weight: bold;
-            color: #64748b;
-            cursor: pointer;
-        }
-
-        .menu-items {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            flex: 1;
-            overflow-y: auto;
-        }
-
-        .menu-item-btn {
-            padding: 12px 15px;
-            border: none;
-            background: #f1f5f9;
-            color: #334155;
-            font-weight: bold;
-            border-radius: 8px;
-            cursor: pointer;
-            text-align: left;
-            font-size: 14px;
-            transition: all 0.2s;
-        }
-
-        .menu-item-btn.active {
-            background: var(--primary-color);
-            color: white;
-        }
-
-        .menu-item-btn:hover:not(.active) {
-            background: #e2e8f0;
-        }
-
-        .menu-item-admin {
-            background: #fef3c7;
-            color: #b45309;
-        }
-
-        .menu-item-admin.active {
-            background: #d97706;
-            color: white;
-        }
-
-        .theme-selector-box {
+        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f0f4f8; margin: 0; padding: 15px; }
+        .container { max-width: 1150px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        h2, h3, h4 { text-align: center; color: #1e293b; margin-top: 0; }
+        
+        /* GİRİŞ SAYFASI ÖZEL FAN ALANI */
+        .fan-banner {
+            text-align: center;
             margin-top: 15px;
-            padding-top: 15px;
-            border-top: 1px dashed #cbd5e1;
+            padding: 15px;
+            border-radius: 10px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            transition: all 0.3s ease;
+        }
+        .fan-logo {
+            width: 90px;
+            height: 90px;
+            object-fit: contain;
+            margin-bottom: 8px;
+            filter: drop-shadow(0px 4px 6px rgba(0,0,0,0.15));
+            transition: transform 0.3s ease;
+        }
+        .fan-logo:hover {
+            transform: scale(1.08);
+        }
+        .fan-slogan {
+            font-size: 15px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
         }
 
-        .theme-selector-box label {
-            font-size: 12px;
-            font-weight: bold;
-            color: #64748b;
-            display: block;
-            margin-bottom: 6px;
-        }
+        /* 2 SÜTUNLU DERLİ TOPLU MENÜ YAPISI */
+        .nav-menu { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 20px; }
+        .nav-btn { padding: 10px 14px; border: none; background: #e2e8f0; color: #334155; font-weight: bold; border-radius: 6px; cursor: pointer; transition: 0.2s; font-size: 13px; text-align: center; }
+        .nav-btn.active { background: #2563eb; color: white; }
+        .nav-btn-admin { background: #d97706; color: white; grid-column: span 2; }
+        .nav-btn-admin.active { background: #b45309; color: white; }
 
-        .theme-select {
-            width: 100%;
-            padding: 8px;
-            border-radius: 6px;
-            border: 1px solid #cbd5e1;
-            font-size: 13px;
-            font-weight: bold;
-        }
-
-        /* GİRİŞ EKRANI ÖZET TABLOLAR */
-        .login-summary-section {
-            margin-top: 20px;
-            border-top: 2px dashed #cbd5e1;
-            padding-top: 15px;
-        }
-        .login-summary-title-live {
-            color: #dc2626;
-            font-size: 16px;
-            font-weight: 900;
-            text-align: center;
-            letter-spacing: 1px;
-            margin-bottom: 10px;
-            text-transform: uppercase;
-        }
-        .login-summary-title-all {
-            color: var(--primary-color);
-            font-size: 16px;
-            font-weight: 900;
-            text-align: center;
-            letter-spacing: 1px;
-            margin-top: 25px;
-            margin-bottom: 10px;
-            text-transform: uppercase;
-        }
-        .login-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 13px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-            border-radius: 6px;
-            overflow: hidden;
-        }
-        .login-table th {
-            background-color: var(--header-bg);
-            color: white;
-            padding: 10px;
-            font-weight: 700;
-            text-transform: uppercase;
-            font-size: 12px;
-        }
-        .login-table td {
-            padding: 10px;
-            border-bottom: 1px solid #e2e8f0;
-            text-align: center;
-            font-weight: 600;
-        }
-        .login-table tr:nth-child(even) {
-            background-color: #f8fafc;
-        }
-
-        /* YENİLENMİŞ ONAYLI TÜM MAÇLAR TABLOSU ÖZEL STİLİ */
-        .login-table-custom-all {
-            border: 1px solid var(--card-border);
-            background: #ffffff;
-        }
-        .login-table-custom-all th {
-            background: var(--primary-color);
-            color: #ffffff;
-        }
-        .login-table-custom-all tr:nth-child(even) {
-            background-color: #f8fafc;
-        }
+        /* DİNAMİK SIRALANAN PUAN KARTLARI */
+        .leaderboard-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px; }
+        .card { padding: 12px; border-radius: 8px; color: white; text-align: center; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: all 0.3s ease; }
+        .card-name { font-size: 16px; margin-bottom: 4px; }
+        .card-score { font-size: 22px; margin-top: 2px; }
+        .card-badge { font-size: 12px; background: rgba(0,0,0,0.25); padding: 3px 8px; border-radius: 12px; margin-top: 6px; display: inline-block; font-weight: 600; }
 
         table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 13px; }
         th, td { border: 1px solid #cbd5e1; padding: 8px; text-align: center; vertical-align: middle; }
-        th { background-color: var(--header-bg); color: white; }
+        th { background-color: #1e293b; color: white; }
         
         .team-cell { display: flex; align-items: center; justify-content: center; gap: 8px; text-align: center; }
         
@@ -315,7 +73,7 @@
         .status-badge { display: inline-block; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: bold; margin-bottom: 5px; }
         .status-open { background: #dcfce7; color: #15803d; }
         .status-locked { background: #fee2e2; color: #b91c1c; }
-        .logout-btn { background-color: #ef4444; color: white; padding: 10px 14px; font-size: 13px; margin-top: 15px; width: 100%; border-radius: 6px; }
+        .logout-btn { background-color: #ef4444; color: white; padding: 8px 12px; font-size: 12px; margin-top: 15px; }
         .winner-tag { background: #fef08a; color: #854d0e; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 11px; }
 
         /* MODAL STİLLERİ */
@@ -328,7 +86,7 @@
         .modal-input { width: 100%; padding: 10px; margin: 8px 0; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; box-sizing: border-box; }
 
         /* PUAN KURALLARI STİLİ */
-        .rule-card { background: #f8fafc; border-left: 5px solid var(--primary-color); padding: 15px; margin-bottom: 15px; border-radius: 0 8px 8px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .rule-card { background: #f8fafc; border-left: 5px solid #2563eb; padding: 15px; margin-bottom: 15px; border-radius: 0 8px 8px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
         .rule-card h4 { text-align: left; margin: 0 0 8px 0; color: #1e293b; font-size: 16px; }
         .rule-card p { margin: 0; font-size: 14px; color: #475569; line-height: 1.5; }
         .rule-badge { display: inline-block; background: #dbeafe; color: #1e40af; font-weight: bold; padding: 3px 8px; border-radius: 4px; font-size: 12px; margin-right: 5px; }
@@ -483,7 +241,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: var(--header-bg);
+            background: #1e293b;
             color: white;
             padding: 12px 18px;
             border-radius: 10px;
@@ -650,19 +408,20 @@
         .h2h-score { font-size: 15px; font-weight: 800; color: #1e293b; }
 
         @media (max-width: 600px) {
+            .leaderboard-grid { grid-template-columns: repeat(2, 1fr); }
             .player-predictions-grid { grid-template-columns: repeat(1, 1fr); }
             .stat-grid { grid-template-columns: repeat(1, 1fr); }
         }
     </style>
 </head>
-<body class="theme-classic">
+<body>
 
 <!-- GİRİŞ EKRANI -->
-<div class="container" id="loginScreen" style="max-width:450px; margin-top: 20px;">
-    <h2>🔥 VAR MISINIZ İDDAAYA</h2>
+<div class="container" id="loginScreen" style="max-width:400px; margin-top: 30px;">
+    <h2>🏆 Süper Lig Tahmin Portalı</h2>
     <div>
         <label><b>Kullanıcı Seçin:</b></label>
-        <select id="loginUser" style="width:100%; margin: 8px 0 15px 0; padding: 10px; border-radius:6px; border:1px solid #ccc; font-size:14px;">
+        <select id="loginUser" onchange="updateLoginFanBanner()" style="width:100%; margin: 8px 0 15px 0; padding: 10px; border-radius:6px; border:1px solid #ccc; font-size:14px;">
             <option value="">-- İsminizi Seçin --</option>
             <option value="Yonetici">Yönetici (Admin)</option>
             <option value="Umut">Umut</option>
@@ -674,38 +433,12 @@
         <label><b>Şifre:</b></label>
         <input type="password" id="loginPass" placeholder="Şifrenizi Girin" style="width:100%; margin: 8px 0 15px 0; padding: 10px; border-radius:6px; border:1px solid #ccc; font-size:14px;">
         
-        <button type="button" onclick="login()" style="width:100%; padding:12px; font-size: 15px; background:var(--primary-color); color:white;">Giriş Yap</button>
+        <button type="button" onclick="login()" style="width:100%; padding:12px; font-size: 15px; background:#2563eb; color:white;">Giriş Yap</button>
 
-        <!-- GİRİŞ SAYFASI ÖZET TABLOLAR ALANI -->
-        <div class="login-summary-section">
-            <div class="login-summary-title-live">🔥 CANLI DURUM <span id="loginAktifHaftaText" style="font-size:12px; font-weight:normal; color:#dc2626;">(1. Hafta)</span></div>
-            <table class="login-table">
-                <thead>
-                    <tr>
-                        <th style="width: 25%;">Sıra</th>
-                        <th style="width: 45%;">Kullanıcı Adı</th>
-                        <th style="width: 30%;">Canlı Puan</th>
-                    </tr>
-                </thead>
-                <tbody id="loginLiveTableBody">
-                    <tr><td colspan="3" style="color:#94a3b8;">Yükleniyor...</td></tr>
-                </tbody>
-            </table>
-
-            <div class="login-summary-title-all">🏆 ONAYLI TÜM MAÇLAR</div>
-            <table class="login-table login-table-custom-all">
-                <thead>
-                    <tr>
-                        <th style="width: 15%;">Sıra</th>
-                        <th style="width: 35%;">Kullanıcı</th>
-                        <th style="width: 25%;">Şampiyonluk</th>
-                        <th style="width: 25%;">Puan</th>
-                    </tr>
-                </thead>
-                <tbody id="loginAllTableBody">
-                    <tr><td colspan="4" style="color:#94a3b8;">Yükleniyor...</td></tr>
-                </tbody>
-            </table>
+        <!-- DİNAMİK LOGO VE SLOGAN ALANI -->
+        <div id="fanBanner" class="fan-banner">
+            <img id="fanLogoImg" class="fan-logo" src="https://upload.wikimedia.org/wikipedia/commons/2/20/Galatasaray_Sports_Club_Logo.svg" alt="Takım Logosu">
+            <div id="fanSloganText" class="fan-slogan" style="color:#a80000;">🏆 Son Şampiyon Galatasaray 🏆</div>
         </div>
     </div>
 </div>
@@ -723,46 +456,14 @@
     </div>
 </div>
 
-<!-- YAN MENÜ MASKESİ (OVERLAY) -->
-<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
-
-<!-- SAĞDAN AÇILAN YAN MENÜ -->
-<div class="sidebar-menu" id="sidebarMenu">
-    <div class="sidebar-header">
-        <h4 style="margin:0; font-size:16px;">📌 Menü</h4>
-        <button class="sidebar-close-btn" onclick="closeSidebar()">✕</button>
-    </div>
-    
-    <div class="menu-items">
-        <button class="menu-item-btn active" id="btnMenu1" onclick="selectPageFromMenu(1)">Tahmin Girişi</button>
-        <button class="menu-item-btn" id="btnMenu2" onclick="selectPageFromMenu(2)">Canlı Skorlar</button>
-        <button class="menu-item-btn" id="btnMenu5" onclick="selectPageFromMenu(5)">📊 Haftalık Özet</button>
-        <button class="menu-item-btn" id="btnMenu7" onclick="selectPageFromMenu(7)">📈 Detaylı Analiz</button>
-        <button class="menu-item-btn" id="btnMenu3" onclick="selectPageFromMenu(3)">Sezon Arşivi</button>
-        <button class="menu-item-btn" id="btnMenu6" onclick="selectPageFromMenu(6)">📜 Puan Kuralları</button>
-        <button class="menu-item-btn menu-item-admin hidden" id="btnMenu4" onclick="selectPageFromMenu(4)">⚙️ Admin Paneli</button>
-    </div>
-
-    <!-- TEMA SEÇİCİ KUTUSU -->
-    <div class="theme-selector-box">
-        <label>🎨 UYGULAMA TEMASI:</label>
-        <select id="themeSelect" class="theme-select" onchange="changeTheme(this.value)">
-            <option value="theme-gs">🔴🟡 Galatasaray</option>
-            <option value="theme-fb">🟡🔵 Fenerbahçe</option>
-            <option value="theme-tr">🔴⚪ Türkiye</option>
-            <option value="theme-classic">⚙️ Klasik</option>
-        </select>
-    </div>
-
-    <button type="button" class="logout-btn" onclick="logout()">🚪 Çıkış Yap</button>
-</div>
-
 <!-- ANA UYGULAMA EKRANI -->
 <div class="container hidden" id="mainScreen">
-    <div class="app-header">
-        <h2 id="welcomeMsg" style="margin:0; font-size:18px;"></h2>
-        <button class="hamburger-btn" onclick="openSidebar()" title="Menüyü Aç">☰</button>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+        <h2 id="welcomeMsg" style="margin:0;"></h2>
     </div>
+
+    <!-- DINAMIK PUAN VE BİRİNCİLİK KARTLARI -->
+    <div class="leaderboard-grid" id="leaderboardGrid"></div>
 
     <!-- ADMİN PANELİ -->
     <div id="adminPanel" class="admin-panel hidden">
@@ -799,6 +500,17 @@
             </select>
             <button type="button" onclick="adminSifreSifirla()" style="background:#2563eb; color:white; padding:6px 12px; font-size:12px; border-radius:4px;">Şifreyi Sıfırla (1234 Yap)</button>
         </div>
+    </div>
+
+    <!-- 2 SÜTUNLU DERLİ TOPLU MENÜ -->
+    <div class="nav-menu">
+        <button class="nav-btn active" id="btnPage1" onclick="switchPage(1)">Tahmin Girişi</button>
+        <button class="nav-btn" id="btnPage2" onclick="switchPage(2)">Canlı Skorlar</button>
+        <button class="nav-btn" id="btnPage5" onclick="switchPage(5)">📊 Haftalık Özet</button>
+        <button class="nav-btn" id="btnPage7" onclick="switchPage(7)">📈 Detaylı Analiz</button>
+        <button class="nav-btn" id="btnPage3" onclick="switchPage(3)">Sezon Arşivi</button>
+        <button class="nav-btn" id="btnPage6" onclick="switchPage(6)">📜 Puan Kuralları</button>
+        <button class="nav-btn nav-btn-admin hidden" id="btnPage4" onclick="switchPage(4)">Admin Maç & Skor Paneli</button>
     </div>
 
     <!-- TAHMİN GİRİŞİ -->
@@ -851,7 +563,7 @@
                     <th style="background:#c0392b;">ibrahim</th>
                     <th style="background:#1a252f;">Özkan</th>
                     <th style="background:#d4ac0d; color:#2c3e50;">Onur</th>
-                    <th style="background:var(--primary-color);">👑 Haftanın Birincisi</th>
+                    <th style="background:#2563eb;">👑 Haftanın Birincisi</th>
                 </tr>
             </thead>
             <tbody id="p5TableBody"></tbody>
@@ -957,6 +669,8 @@
             <button type="button" onclick="submitMacVeSkorlar()" class="btn-submit" style="background-color: #d97706;">💾 Maç Bilgilerini ve Skorları Kaydet</button>
         </div>
     </div>
+
+    <button type="button" class="logout-btn" onclick="logout()">Çıkış Yap</button>
 </div>
 
 <!-- ÖZEL ONAY PENCERESİ (MODAL) -->
@@ -986,7 +700,12 @@
 
     const big3 = ["Galatasaray", "Fenerbahçe", "Beşiktaş"];
     const oyuncular = ["Umut", "ibrahim", "Özkan", "Onur"];
-    
+    const oyuncuRenkleri = {
+        "Umut": "linear-gradient(135deg, #f39c12, #e67e22)",
+        "ibrahim": "linear-gradient(135deg, #e74c3c, #c0392b)",
+        "Özkan": "linear-gradient(135deg, #34495e, #1a252f)",
+        "Onur": "linear-gradient(135deg, #f1c40f, #d4ac0d)"
+    };
     const oyuncuTekRenk = {
         "Umut": "#e67e22",
         "ibrahim": "#c0392b",
@@ -1006,46 +725,26 @@
     let dbMaclar = {};
     let dbTahminler = {};
     let dbAyarlar = { aktifHafta: "1. Hafta" };
-    let dbKilitTarihleri = {}; 
+    let dbKilitTarihleri = {}; // { "1. Hafta": "2023-10-10T19:00" }
     let dbOnaylar = {};
     let timerInterval = null;
     let myChart = null;
     let winnerChartInstance = null;
 
-    document.addEventListener("DOMContentLoaded", () => {
-        initApp();
-    });
+    // GİRİŞ SAYFASI LOGO GÜNCELLEME
+    function updateLoginFanBanner() {
+        const selectedUser = document.getElementById('loginUser').value;
+        const logoImg = document.getElementById('fanLogoImg');
+        const sloganText = document.getElementById('fanSloganText');
 
-    // SIDEBAR MENÜ KONTROLLERİ
-    function openSidebar() {
-        document.getElementById('sidebarOverlay').classList.add('active');
-        document.getElementById('sidebarMenu').classList.add('active');
-    }
-
-    function closeSidebar() {
-        document.getElementById('sidebarOverlay').classList.remove('active');
-        document.getElementById('sidebarMenu').classList.remove('active');
-    }
-
-    function selectPageFromMenu(pageNum) {
-        switchPage(pageNum);
-        closeSidebar();
-    }
-
-    // TEMA DEĞİŞTİRME MANTIĞI
-    function changeTheme(themeClass) {
-        document.body.className = themeClass;
-        document.getElementById('themeSelect').value = themeClass;
-    }
-
-    function applyUserDefaultTheme(user) {
-        if (user === "Özkan") {
-            changeTheme("theme-fb");
-        } else if (user === "Yonetici") {
-            changeTheme("theme-classic");
+        if (selectedUser === "Özkan") {
+            logoImg.src = "https://upload.wikimedia.org/wikipedia/tr/8/86/Fenerbah%C3%A7e_SK.png";
+            sloganText.innerText = "🟡🔵 O Sene Bu Sene! 🟡🔵";
+            sloganText.style.color = "#002d72";
         } else {
-            // Umut, ibrahim, Onur vb.
-            changeTheme("theme-gs");
+            logoImg.src = "https://upload.wikimedia.org/wikipedia/commons/2/20/Galatasaray_Sports_Club_Logo.svg";
+            sloganText.innerText = "🏆 Son Şampiyon Galatasaray 🏆";
+            sloganText.style.color = "#a80000";
         }
     }
 
@@ -1066,8 +765,6 @@
 
             if (uData && pass === uData.sifre) {
                 currentUser = user;
-                applyUserDefaultTheme(currentUser);
-
                 if (!uData.sifreDegisti && user !== "Yonetici") {
                     document.getElementById('changePasswordModal').classList.remove('hidden');
                 } else {
@@ -1104,8 +801,10 @@
 
         if (currentUser === "Yonetici") {
             document.getElementById('adminPanel').classList.remove('hidden');
-            document.getElementById('btnMenu4').classList.remove('hidden');
+            document.getElementById('btnPage4').classList.remove('hidden');
         }
+
+        initApp();
     }
 
     function logout() { location.reload(); }
@@ -1115,14 +814,14 @@
         let p3Select = document.getElementById('p3HaftaFilter');
         let p4Select = document.getElementById('p4HaftaFilter');
         
-        if (ahSelect) ahSelect.innerHTML = "";
-        if (p3Select) p3Select.innerHTML = '<option value="TUMU">Tüm Haftalar</option>';
-        if (p4Select) p4Select.innerHTML = "";
+        ahSelect.innerHTML = "";
+        p3Select.innerHTML = '<option value="TUMU">Tüm Haftalar</option>';
+        p4Select.innerHTML = "";
 
         for(let i=1; i<=34; i++) {
-            if (ahSelect) ahSelect.innerHTML += `<option value="${i}. Hafta">${i}. Hafta</option>`;
-            if (p3Select) p3Select.innerHTML += `<option value="${i}. Hafta">${i}. Hafta</option>`;
-            if (p4Select) p4Select.innerHTML += `<option value="${i}. Hafta">${i}. Hafta</option>`;
+            ahSelect.innerHTML += `<option value="${i}. Hafta">${i}. Hafta</option>`;
+            p3Select.innerHTML += `<option value="${i}. Hafta">${i}. Hafta</option>`;
+            p4Select.innerHTML += `<option value="${i}. Hafta">${i}. Hafta</option>`;
         }
 
         db.ref().on('value', snapshot => {
@@ -1135,16 +834,14 @@
 
             if(ahSelect) ahSelect.value = dbAyarlar.aktifHafta || "1. Hafta";
 
-            if(p4Select && !p4Select.dataset.userChanged) {
+            if(!p4Select.dataset.userChanged) {
                 p4Select.value = dbAyarlar.aktifHafta || "1. Hafta";
             }
 
+            // Admin kilit tarihi inputunu doldur
             onAdminHaftaChange();
 
-            // Giriş Ekranı Tablolarını Doldur
-            renderLoginTables();
-
-            // Ana Ekran Bileşenleri
+            updateLeaderboard();
             renderPage1();
             renderPage2();
             renderPage3();
@@ -1152,98 +849,6 @@
             renderPage7();
             if(currentUser === "Yonetici") renderPage4();
         });
-    }
-
-    // GİRİŞ SAYFASI ÖZET TABLOLARINI RENDER ETME
-    function renderLoginTables() {
-        const h = dbAyarlar.aktifHafta || "1. Hafta";
-        const txtElem = document.getElementById('loginAktifHaftaText');
-        if (txtElem) txtElem.innerText = `(${h})`;
-
-        // 1. CANLI DURUM TABLOSU
-        let haftalikLivePuanlar = { "Umut": 0, "ibrahim": 0, "Özkan": 0, "Onur": 0 };
-        Object.keys(dbMaclar).forEach(mId => {
-            const m = dbMaclar[mId];
-            if (m.hafta === h && m.gEv !== undefined && m.gEv !== "") {
-                const gercekEv = parseInt(m.gEv);
-                const gercekDep = parseInt(m.gDep);
-                oyuncular.forEach(o => {
-                    if (dbTahminler[mId] && dbTahminler[mId][o]) {
-                        let t = dbTahminler[mId][o];
-                        if (t.ev !== "" && t.dep !== "") {
-                            haftalikLivePuanlar[o] += puanHesapla(m.ev, m.dep, gercekEv, gercekDep, parseInt(t.ev), parseInt(t.dep));
-                        }
-                    }
-                });
-            }
-        });
-
-        let sortedLive = oyuncular.map(o => ({
-            name: o,
-            puan: haftalikLivePuanlar[o]
-        })).sort((a, b) => b.puan - a.puan);
-
-        let liveTbody = "";
-        sortedLive.forEach((p, idx) => {
-            let medal = idx === 0 ? "🥇 " : (idx === 1 ? "🥈 " : (idx === 2 ? "🥉 " : ""));
-            liveTbody += `
-                <tr>
-                    <td><b>${idx + 1}</b></td>
-                    <td>${medal}${p.name}</td>
-                    <td style="color:#dc2626; font-weight:800;">${p.puan} P</td>
-                </tr>
-            `;
-        });
-        const liveElem = document.getElementById('loginLiveTableBody');
-        if (liveElem) liveElem.innerHTML = liveTbody;
-
-        // 2. ONAYLI TÜM MAÇLAR (ŞAMPİYONLUK KATSAYILI) TABLOSU
-        let toplamPuanlar = { "Umut": 0, "ibrahim": 0, "Özkan": 0, "Onur": 0 };
-        let birincilikSayilari = { "Umut": 0, "ibrahim": 0, "Özkan": 0, "Onur": 0 };
-        let haftalikMatrix = getHaftalikVeriler();
-
-        for (let i = 1; i <= 34; i++) {
-            let hName = `${i}. Hafta`;
-            let hData = haftalikMatrix[hName];
-
-            let maxP = -1;
-            oyuncular.forEach(o => {
-                toplamPuanlar[o] += hData[o];
-                if (hData.oynandi && hData[o] > maxP) maxP = hData[o];
-            });
-
-            if (hData.oynandi && maxP > 0) {
-                oyuncular.forEach(o => {
-                    if (hData[o] === maxP) birincilikSayilari[o] += 1;
-                });
-            }
-        }
-
-        let sortedAll = oyuncular.map(o => ({
-            name: o,
-            puan: toplamPuanlar[o],
-            sampiyonluk: birincilikSayilari[o]
-        })).sort((a, b) => {
-            if (b.sampiyonluk !== a.sampiyonluk) {
-                return b.sampiyonluk - a.sampiyonluk;
-            }
-            return b.puan - a.puan;
-        });
-
-        let allTbody = "";
-        sortedAll.forEach((p, idx) => {
-            let crown = idx === 0 ? "👑 " : "";
-            allTbody += `
-                <tr>
-                    <td><b>${idx + 1}</b></td>
-                    <td>${crown}${p.name}</td>
-                    <td><span style="background:#dbeafe; color:#1e40af; padding:2px 8px; border-radius:12px; font-weight:bold; font-size:11px;">🏆 ${p.sampiyonluk}</span></td>
-                    <td style="color:var(--primary-color); font-weight:800;">${p.puan} P</td>
-                </tr>
-            `;
-        });
-        const allElem = document.getElementById('loginAllTableBody');
-        if (allElem) allElem.innerHTML = allTbody;
     }
 
     function onAdminHaftaChange() {
@@ -1255,16 +860,15 @@
     }
 
     function switchPage(pageNum) {
-        document.querySelectorAll('.menu-item-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
         document.querySelectorAll('.page-content').forEach(p => p.classList.add('hidden'));
 
-        const currentBtn = document.getElementById(`btnMenu${pageNum}`);
-        if(currentBtn) currentBtn.classList.add('active');
-        
+        document.getElementById(`btnPage${pageNum}`).classList.add('active');
         document.getElementById(`page${pageNum}`).classList.remove('hidden');
     }
 
     function isHaftaKilitli(haftaIsmi) {
+        // Belirtilen hafta için tahmin süresi doldu mu?
         const kilitTarihStr = dbKilitTarihleri[haftaIsmi];
         if(!kilitTarihStr) return false;
 
@@ -1283,12 +887,14 @@
             const h = dbAyarlar.aktifHafta;
             const simdi = new Date().getTime();
 
+            // Önce Admin'in tanımladığı Kilit Tarihine bak
             const adminKilitStr = dbKilitTarihleri[h];
             let kilitTargetTime = Infinity;
 
             if (adminKilitStr) {
                 kilitTargetTime = new Date(adminKilitStr).getTime();
             } else {
+                // Admin girmediyse en yakın maç saatini hedefle
                 Object.keys(dbMaclar).forEach(mId => {
                     const m = dbMaclar[mId];
                     if (m.hafta === h && m.tarih) {
@@ -1376,6 +982,56 @@
         });
 
         return haftalikMatrix;
+    }
+
+    function updateLeaderboard() {
+        let toplamPuanlar = { "Umut":0, "ibrahim":0, "Özkan":0, "Onur":0 };
+        let birincilikSayilari = { "Umut":0, "ibrahim":0, "Özkan":0, "Onur":0 };
+        let haftalikMatrix = getHaftalikVeriler();
+
+        for(let i=1; i<=34; i++) {
+            let hName = `${i}. Hafta`;
+            let hData = haftalikMatrix[hName];
+
+            let maxP = -1;
+            oyuncular.forEach(o => {
+                toplamPuanlar[o] += hData[o];
+                if(hData.oynandi && hData[o] > maxP) maxP = hData[o];
+            });
+
+            if(hData.oynandi && maxP > 0) {
+                oyuncular.forEach(o => {
+                    if(hData[o] === maxP) birincilikSayilari[o] += 1;
+                });
+            }
+        }
+
+        let sortedPlayers = oyuncular.map(o => {
+            return {
+                isim: o,
+                puan: toplamPuanlar[o],
+                birincilik: birincilikSayilari[o],
+                bg: oyuncuRenkleri[o]
+            };
+        }).sort((a, b) => {
+            if (b.birincilik !== a.birincilik) {
+                return b.birincilik - a.birincilik;
+            }
+            return b.puan - a.puan;
+        });
+
+        let gridHtml = "";
+        sortedPlayers.forEach(p => {
+            gridHtml += `
+                <div class="card" style="background: ${p.bg};">
+                    <div class="card-name">${p.isim}</div>
+                    <div class="card-score">${p.puan} P</div>
+                    <div class="card-badge">👑 ${p.birincilik} Kez Birinci</div>
+                </div>
+            `;
+        });
+
+        document.getElementById('leaderboardGrid').innerHTML = gridHtml;
     }
 
     function adjustScore(mId, type, delta) {
@@ -1525,6 +1181,10 @@
                 let hasPred = (dbTahminler[mId] && dbTahminler[mId][o] && dbTahminler[mId][o].ev !== "" && dbTahminler[mId][o].dep !== "");
                 let playerColor = oyuncuTekRenk[o];
 
+                // GÖSTERME KURALI:
+                // 1) Kendi tahmini ise HER ZAMAN görsün.
+                // 2) Süre dolduysa (haftaKilitli) veya Maç başladıysa -> HER KESİN tahmini görünsün (Admin dahil).
+                // 3) Süre dolmadıysa -> Başkasının ve Admin'in görmesine izin verilmez! Sadece "Girildi/Girmedi" gösterilir.
                 const skorGosterilsinMi = (o === currentUser) || haftaKilitli || macBasladi;
 
                 if(skorGosterilsinMi) {
@@ -1563,6 +1223,7 @@
                         `;
                     }
                 } else {
+                    // SÜRE BİTMEDİ: Tahmin skoru gizli tutuluyor
                     if(hasPred) {
                         predBoxesHtml += `
                             <div class="player-pred-box">
@@ -2286,4 +1947,3 @@
 </script>
 </body>
 </html>
-```
