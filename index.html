@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="tr">
 <head>
@@ -978,7 +979,6 @@
     const db = firebase.database();
 
     const big3 = ["Galatasaray", "Fenerbahçe", "Beşiktaş"];
-    // Büyük 'İ' İbrahim uyumu için standartlaştırıldı:
     const oyuncular = ["Umut", "İbrahim", "Özkan", "Onur"];
     
     const oyuncuTekRenk = {
@@ -1042,14 +1042,21 @@
         }
     }
 
-    // Kullanıcı adını büyük/küçük harf toleranslı okumak için yardımcı fonksiyon
+    // Kullanıcı adını büyük/küçük harf toleranslı okumak için tam düzeltilmiş yardımcı fonksiyon
     function getPlayerPrediction(mId, playerName) {
-        if (!dbTahminler[mId]) return null;
-        if (dbTahminler[mId][playerName]) return dbTahminler[mId][playerName];
+        if (!dbTahminler || !dbTahminler[mId]) return null;
         
-        // Alternatif harf denemesi ("ibrahim" vs "İbrahim")
-        if (playerName === "İbrahim" && dbTahminler[mId]["ibrahim"]) return dbTahminler[mId]["ibrahim"];
-        if (playerName === "ibrahim" && dbTahminler[mId]["İbrahim"]) return dbTahminler[mId]["İbrahim"];
+        let pMap = dbTahminler[mId];
+        
+        if (pMap[playerName]) return pMap[playerName];
+        
+        // Türkçe karakter ve küçük/büyük harf kontrolü
+        if ((playerName === "İbrahim" || playerName === "ibrahim") && (pMap["İbrahim"] || pMap["ibrahim"] || pMap["Ibrahim"])) {
+            return pMap["İbrahim"] || pMap["ibrahim"] || pMap["Ibrahim"];
+        }
+        if ((playerName === "Özkan" || playerName === "ozkan") && (pMap["Özkan"] || pMap["ozkan"])) {
+            return pMap["Özkan"] || pMap["ozkan"];
+        }
         
         return null;
     }
@@ -1111,6 +1118,9 @@
             document.getElementById('adminPanel').classList.remove('hidden');
             document.getElementById('btnMenu4').classList.remove('hidden');
         }
+
+        renderPage1();
+        renderPage2();
     }
 
     function logout() { location.reload(); }
@@ -1149,12 +1159,14 @@
             onAdminHaftaChange();
 
             renderLoginTables();
-            renderPage1();
-            renderPage2();
-            renderPage3();
-            renderPage5();
-            renderPage7();
-            if(currentUser === "Yonetici") renderPage4();
+            if (currentUser) {
+                renderPage1();
+                renderPage2();
+                renderPage3();
+                renderPage5();
+                renderPage7();
+                if(currentUser === "Yonetici") renderPage4();
+            }
         });
     }
 
@@ -1171,7 +1183,7 @@
                 const gercekDep = parseInt(m.gDep);
                 oyuncular.forEach(o => {
                     let t = getPlayerPrediction(mId, o);
-                    if (t && t.ev !== "" && t.dep !== "") {
+                    if (t && t.ev !== undefined && t.ev !== "" && t.dep !== undefined && t.dep !== "") {
                         haftalikLivePuanlar[o] += puanHesapla(m.ev, m.dep, gercekEv, gercekDep, parseInt(t.ev), parseInt(t.dep));
                     }
                 });
@@ -1365,7 +1377,7 @@
                 haftalikMatrix[m.hafta].oynandi = true;
                 oyuncular.forEach(o => {
                     let t = getPlayerPrediction(mId, o);
-                    if(t && t.ev !== "" && t.dep !== "") {
+                    if(t && t.ev !== undefined && t.ev !== "" && t.dep !== undefined && t.dep !== "") {
                         haftalikMatrix[m.hafta][o] += puanHesapla(m.ev, m.dep, parseInt(m.gEv), parseInt(m.gDep), parseInt(t.ev), parseInt(t.dep));
                     }
                 });
@@ -1396,7 +1408,7 @@
         
         const simdi = new Date().getTime();
         const haftaKey = h.replace(/[^a-zA-Z0-9]/g, "");
-        const onayliMi = (dbOnaylar[haftaKey] && (dbOnaylar[haftaKey][currentUser] || dbOnaylar[haftaKey][currentUser === "İbrahim" ? "ibrahim" : currentUser])) ? true : false;
+        const onayliMi = (dbOnaylar[haftaKey] && (dbOnaylar[haftaKey][currentUser] || (currentUser === "İbrahim" && dbOnaylar[haftaKey]["ibrahim"]))) ? true : false;
 
         const kilitliHafta = isHaftaKilitli(h);
 
@@ -1423,8 +1435,8 @@
             }
 
             let t = getPlayerPrediction(mId, currentUser);
-            let userEv = t ? t.ev : "";
-            let userDep = t ? t.dep : "";
+            let userEv = (t && t.ev !== undefined) ? t.ev : "";
+            let userDep = (t && t.dep !== undefined) ? t.dep : "";
 
             let matchDisabled = (macBasladi || kilitliHafta || onayliMi || currentUser === "Yonetici") ? "disabled" : "";
             let dateFormatted = m.tarih ? new Date(m.tarih).toLocaleString('tr-TR', { dateStyle: 'short', timeStyle: 'short' }) : "Tarih Belirlenmedi";
@@ -1519,7 +1531,7 @@
             let predBoxesHtml = "";
             oyuncular.forEach(o => {
                 let t = getPlayerPrediction(mId, o);
-                let hasPred = (t && t.ev !== "" && t.dep !== "");
+                let hasPred = (t && t.ev !== undefined && t.ev !== "" && t.dep !== undefined && t.dep !== "");
                 let playerColor = oyuncuTekRenk[o];
 
                 const skorGosterilsinMi = (o === currentUser || (currentUser === "İbrahim" && o === "ibrahim")) || haftaKilitli || macBasladi;
@@ -1766,7 +1778,7 @@
                 oyuncular.forEach(o => {
                     macPuanlari[o] = 0;
                     let t = getPlayerPrediction(mId, o);
-                    if(t && t.ev !== "" && t.dep !== "") {
+                    if(t && t.ev !== undefined && t.ev !== "" && t.dep !== undefined && t.dep !== "") {
                         const tE = parseInt(t.ev);
                         const tD = parseInt(t.dep);
                         const predSide = tE > tD ? 1 : (tE < tD ? 2 : 0);
@@ -2003,7 +2015,7 @@
             oyuncular.forEach(o => {
                 let tStr = "-", pStr = "-";
                 let t = getPlayerPrediction(mId, o);
-                let hasPred = (t && t.ev !== "" && t.dep !== "");
+                let hasPred = (t && t.ev !== undefined && t.ev !== "" && t.dep !== undefined && t.dep !== "");
                 
                 const gosterilsinMi = (o === currentUser || (currentUser === "İbrahim" && o === "ibrahim")) || haftaKilitli || macBasladi;
 
