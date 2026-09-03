@@ -294,10 +294,10 @@ html
         .logout-btn { background-color: #ef4444; color: white; padding: 10px 14px; font-size: 13px; margin-top: 15px; width: 100%; border-radius: 6px; }
         .winner-tag { background: #fef08a; color: #854d0e; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 11px; }
 
-        /* ARŞİV TABLOSU ÖZEL ÇİZGİLİ VE ÇİFT SATIRLI HÜCRE STİLİ (%25 KÜÇÜLTÜLMÜŞ) */
-        .archive-table { border: 1px solid #cbd5e1; border-radius: 8px; overflow: hidden; font-size: 10px; }
-        .archive-table th { padding: 5px 3px; font-size: 10px; }
-        .archive-table td { padding: 3px 2px; }
+        /* ARŞİV TABLOSU STİLLERİ */
+        .archive-table { border: 1px solid #cbd5e1; border-radius: 8px; overflow: hidden; font-size: 10px; width: 100%; border-collapse: collapse; }
+        .archive-table th { padding: 6px 3px; font-size: 10px; }
+        .archive-table td { padding: 4px 2px; border: 1px solid #cbd5e1; }
         .archive-pred-cell {
             display: flex;
             flex-direction: column;
@@ -307,12 +307,65 @@ html
             line-height: 1.1;
         }
         .archive-tahmin-val { font-size: 10px; font-weight: 700; color: #334155; }
-        .archive-divider { width: 75%; height: 1px; background-color: #cbd5e1; margin: 2px 0; }
+        .archive-divider { width: 80%; height: 1px; background-color: #cbd5e1; margin: 2px 0; opacity: 0.6; }
         .archive-puan-val { font-size: 9px; font-weight: 800; color: #16a34a; }
         .archive-puan-zero { color: #94a3b8; }
+        
+        /* EN YÜKSEK PUAN YAZILARI İÇİN BELİRGİN FARKLI RENK */
+        .archive-puan-max { 
+            background: #fef08a; 
+            color: #854d0e; 
+            padding: 1px 5px; 
+            border-radius: 4px; 
+            font-weight: 900; 
+            border: 1px solid #fde047; 
+            font-size: 10px;
+        }
+        
         .archive-footer-row { background-color: #f1f5f9; font-weight: 900; font-size: 11px; border-top: 2px solid #0f172a; }
         .archive-footer-total { color: #0f172a; display: flex; flex-direction: column; align-items: center; padding: 4px 1px; }
         .archive-footer-total-num { color: var(--primary-color); font-size: 11px; font-weight: 900; margin-top: 1px; }
+        
+        /* CANLI LİDER HIGHLIGHT */
+        .archive-footer-leader {
+            background-color: #fef08a !important;
+            border-radius: 6px;
+            padding: 3px 6px;
+            border: 1px solid #facc15;
+        }
+        .archive-footer-leader .archive-footer-total-num {
+            color: #854d0e !important;
+            font-size: 12px;
+        }
+
+        /* CANLI SONUÇLAR HÜCRE VE HAYALET ÇİZGİ TASARIMI */
+        .live-match-cell {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 3px 2px;
+            line-height: 1.2;
+        }
+        .live-match-date {
+            font-size: 9px;
+            font-weight: 700;
+            color: #d97706;
+            letter-spacing: 0.3px;
+        }
+        .ghost-line {
+            width: 85%;
+            height: 1px;
+            background: #cbd5e1;
+            margin: 3px 0;
+            opacity: 0.5;
+            border-top: 1px dashed #cbd5e1;
+        }
+        .live-match-teams {
+            font-size: 11px;
+            font-weight: 800;
+            color: #1e293b;
+        }
 
         /* MODAL STİLLERİ */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); display: flex; justify-content: center; align-items: center; z-index: 1000; }
@@ -358,224 +411,13 @@ html
         .p2-live-rankings { display: flex; gap: 10px; flex-wrap: wrap; width: 100%; margin-top: 8px; }
         .p2-rank-badge { flex: 1; min-width: 110px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.15); padding: 6px 10px; border-radius: 8px; text-align: center; font-size: 13px; }
         .p2-rank-badge strong { font-size: 15px; display: block; }
-        .live-matches-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; margin-bottom: 25px; }
-        .live-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04); display: flex; flex-direction: column; gap: 12px; position: relative; }
-        .live-card-tag { position: absolute; top: -10px; right: 12px; font-size: 10px; font-weight: 800; padding: 3px 8px; border-radius: 10px; text-transform: uppercase; }
-        .tag-derby { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
-        .tag-surprise { background: #fef3c7; color: #b45309; border: 1px solid #fcd34d; }
-        .live-score-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 10px; border-bottom: 1px solid #f1f5f9; }
-        .live-team { display: flex; align-items: center; gap: 6px; font-weight: 700; font-size: 13px; width: 40%; }
-        .live-team.away { justify-content: flex-end; text-align: right; }
-        .live-real-score { background: #0f172a; color: #38bdf8; font-weight: 800; font-size: 16px; padding: 4px 12px; border-radius: 20px; letter-spacing: 1px; }
-        .player-predictions-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
-        .player-pred-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 6px 10px; display: flex; justify-content: space-between; align-items: center; font-size: 12px; }
-        .player-pred-info { display: flex; align-items: center; gap: 6px; }
-        .player-dot { width: 8px; height: 8px; border-radius: 50%; }
-        .pred-val { font-weight: 700; color: #334155; }
-        .points-pill { background: #dcfce7; color: #15803d; font-weight: 800; padding: 2px 6px; border-radius: 6px; font-size: 11px; }
-        .points-zero { background: #f1f5f9; color: #94a3b8; }
-        .status-badge-entered { background: #dcfce7; color: #15803d; font-size: 11px; font-weight: 800; padding: 2px 6px; border-radius: 6px; }
-        .status-badge-not-entered { background: #fee2e2; color: #b91c1c; font-size: 11px; font-weight: 800; padding: 2px 6px; border-radius: 6px; }
-
-        /* DETAYLI ANALİZ Gelişmiş Tasarım Stilleri */
-        .analytics-container { display: flex; flex-direction: column; gap: 30px; }
-        
-        .u-card-v2 {
-            background: #ffffff;
-            border-radius: 16px;
-            border: 1px solid #e2e8f0;
-            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05), 0 8px 10px -6px rgba(0,0,0,0.01);
-            overflow: hidden;
-            transition: all 0.3s ease;
-        }
-
-        .u-card-header {
-            padding: 16px 20px;
-            color: white;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 12px;
-        }
-
-        .u-card-user-info { display: flex; align-items: center; gap: 12px; }
-
-        .u-avatar {
-            width: 46px;
-            height: 46px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.2);
-            border: 2px solid rgba(255, 255, 255, 0.4);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 22px;
-            font-weight: 900;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-        }
-
-        .u-title-text { font-size: 20px; font-weight: 800; margin: 0; letter-spacing: 0.5px; }
-        .u-sub-text { font-size: 12px; opacity: 0.9; }
-
-        .u-form-strip {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            background: rgba(0, 0, 0, 0.2);
-            padding: 6px 12px;
-            border-radius: 20px;
-        }
-
-        .form-dots { display: flex; gap: 4px; }
-        .form-dot {
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            color: white;
-            font-size: 10px;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .fd-win { background: #16a34a; }
-        .fd-draw { background: #eab308; }
-        .fd-loss { background: #ef4444; }
-
-        .u-body { padding: 20px; }
-
-        .v2-metrics-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-            gap: 12px;
-            margin-bottom: 20px;
-        }
-
-        .v2-metric-box {
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
-            padding: 12px 15px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .v2-metric-box::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 0;
-            bottom: 0;
-            width: 4px;
-            background: #cbd5e1;
-        }
-
-        .v2-metric-box.primary::before { background: var(--primary-color); }
-        .v2-metric-box.success::before { background: #16a34a; }
-        .v2-metric-box.warning::before { background: #f59e0b; }
-        .v2-metric-box.purple::before { background: #9333ea; }
-        .v2-metric-box.danger::before { background: #ef4444; }
-
-        .v2-m-label { font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
-        .v2-m-value { font-size: 20px; font-weight: 900; color: #0f172a; margin: 4px 0; }
-        .v2-m-sub { font-size: 11px; color: #475569; font-weight: 600; }
-
-        .v2-badges-flex {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-bottom: 20px;
-        }
-
-        .v2-badge-chip {
-            background: #f1f5f9;
-            border: 1px solid #cbd5e1;
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 700;
-            color: #334155;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.03);
-        }
-
-        /* KAFA KAFAYA DÜELLO ARENASI */
-        .h2h-arena-container {
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
-            padding: 16px;
-        }
-
-        .h2h-arena-title {
-            font-size: 13px;
-            font-weight: 800;
-            color: #1e293b;
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .h2h-matchups-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 12px;
-        }
-
-        .h2h-card {
-            background: #ffffff;
-            border: 1px solid #cbd5e1;
-            border-radius: 10px;
-            padding: 12px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-        }
-
-        .h2h-card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 13px;
-            font-weight: 800;
-        }
-
-        .h2h-pill-win { background: #dcfce7; color: #15803d; padding: 2px 8px; border-radius: 12px; font-size: 11px; }
-        .h2h-pill-loss { background: #fee2e2; color: #b91c1c; padding: 2px 8px; border-radius: 12px; font-size: 11px; }
-        .h2h-pill-draw { background: #fef3c7; color: #b45309; padding: 2px 8px; border-radius: 12px; font-size: 11px; }
-
-        .h2h-stat-bar-wrapper {
-            height: 10px;
-            background: #e2e8f0;
-            border-radius: 5px;
-            overflow: hidden;
-            display: flex;
-        }
-
-        .h2h-bar-win { background: #16a34a; height: 100%; }
-        .h2h-bar-draw { background: #f59e0b; height: 100%; }
-        .h2h-bar-loss { background: #ef4444; height: 100%; }
-
-        .h2h-details-text {
-            display: flex;
-            justify-content: space-between;
-            font-size: 11px;
-            color: #64748b;
-            font-weight: 700;
-        }
+        .p2-rank-badge.leader-badge { background: #fef08a; color: #854d0e; border: 1px solid #fde047; font-weight: bold; }
+        .p2-rank-badge.leader-badge strong { color: #854d0e; }
 
         @media (max-width: 600px) {
-            .player-predictions-grid { grid-template-columns: repeat(1, 1fr); }
-            .v2-metrics-grid { grid-template-columns: repeat(1, 1fr); }
-            .h2h-matchups-grid { grid-template-columns: repeat(1, 1fr); }
+            .archive-table { font-size: 9px; }
+            .archive-table th { padding: 4px 1px; font-size: 9px; }
+            .live-match-teams { font-size: 10px; }
         }
     </style>
 </head>
@@ -661,7 +503,6 @@ html
         <button class="menu-item-btn active" id="btnMenu1" onclick="selectPageFromMenu(1)">Tahmin Girişi</button>
         <button class="menu-item-btn" id="btnMenu2" onclick="selectPageFromMenu(2)">Canlı Skorlar</button>
         <button class="menu-item-btn" id="btnMenu5" onclick="selectPageFromMenu(5)">📊 Haftalık Özet</button>
-        <button class="menu-item-btn" id="btnMenu7" onclick="selectPageFromMenu(7)">📈 Detaylı Analiz</button>
         <button class="menu-item-btn" id="btnMenu3" onclick="selectPageFromMenu(3)">Sezon Arşivi</button>
         <button class="menu-item-btn" id="btnMenu6" onclick="selectPageFromMenu(6)">📜 Puan Kuralları</button>
         <button class="menu-item-btn menu-item-admin hidden" id="btnMenu4" onclick="selectPageFromMenu(4)">⚙️ Admin Paneli</button>
@@ -738,7 +579,7 @@ html
         </div>
     </div>
 
-    <!-- CANLI SKORLAR -->
+    <!-- CANLI SKORLAR (GÜNCELLENMİŞ ARŞİV FORMUTU) -->
     <div id="page2" class="page-content hidden">
         <div class="p2-header-summary">
             <div>
@@ -748,7 +589,23 @@ html
             <div id="p2LiveRankings" class="p2-live-rankings"></div>
         </div>
 
-        <div id="p2MatchesGrid" class="live-matches-grid"></div>
+        <!-- ARŞİV STİLİNDE CANLI TABLO -->
+        <div style="overflow-x:auto; margin-bottom:20px;">
+            <table class="archive-table">
+                <thead>
+                    <tr>
+                        <th style="width:34%;">Maç & Tarih</th>
+                        <th style="width:14%; background:#0f172a; color:#fff;">Gerçek</th>
+                        <th style="width:13%; background:#e67e22; color:#fff;">Umut</th>
+                        <th style="width:13%; background:#c0392b; color:#fff;">ibrahim</th>
+                        <th style="width:13%; background:#1a252f; color:#fff;">Özkan</th>
+                        <th style="width:13%; background:#d4ac0d; color:#2c3e50;">Onur</th>
+                    </tr>
+                </thead>
+                <tbody id="p2LiveTableBody"></tbody>
+                <tfoot id="p2LiveTableFoot"></tfoot>
+            </table>
+        </div>
 
         <div class="chart-card">
             <h4 id="chartTitle" style="margin-bottom:15px; color:#1e293b; text-align:left;">📊 Aktif Hafta Puan Dağılımı</h4>
@@ -786,16 +643,7 @@ html
         </div>
     </div>
 
-    <!-- DETAYLI PERFORMANS & İSTATİSTİKLER -->
-    <div id="page7" class="page-content hidden">
-        <div style="text-align:center; margin-bottom: 25px;">
-            <h3 style="margin-bottom:6px; font-size:22px; font-weight:800; color:#0f172a;">⚔️ REKABET & İSTATİSTİK ARENASI</h3>
-            <p style="font-size:13px; color:#64748b; margin:0;">Favori skorlar, gol beklentileri, birebir arkadaş düelloları ve oyuncu tarzları.</p>
-        </div>
-        <div class="analytics-container" id="analyticsContainer"></div>
-    </div>
-
-    <!-- TÜM HAFTALAR (SEZON ARŞİVİ) (%25 KÜÇÜLTÜLMÜŞ SÜTUNLAR) -->
+    <!-- TÜM HAFTALAR (SEZON ARŞİVİ) -->
     <div id="page3" class="page-content hidden">
         <div style="margin-bottom: 12px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
             <div style="display:flex; align-items:center; gap:8px;">
@@ -1055,7 +903,6 @@ html
             renderPage2();
             renderPage3();
             renderPage5();
-            renderPage7();
             if(currentUser === "Yonetici") renderPage4();
         });
     }
@@ -1331,7 +1178,7 @@ html
 
             containerHtml += `
             <div class="match-card">
-                <div class="match-date-badge">🗓️ ${dateFormatted} ${macBasladi ? '(Başladı/Kilitli)' : ''}</div>
+                <div class="match-date-badge">🗓️ ${dateFormatted} ${macBasladi ? '(Başladi/Kilitli)' : ''}</div>
                 <div class="teams-header">
                     <div class="team-box">
                         <span>${m.ev}</span>
@@ -1380,6 +1227,9 @@ html
         startCountdown();
     }
 
+    /* =========================================================================
+       SAYFA 2: YENİLENMİŞ ARŞİV FORMATINDA CANLI SKORLAR TABLOSU
+       ========================================================================= */
     function renderPage2() {
         const h = dbAyarlar.aktifHafta || "1. Hafta";
         document.getElementById('p2Title').innerText = `${h} Canlı Tahmin Tablosu`;
@@ -1389,7 +1239,7 @@ html
         const haftaKilitli = isHaftaKilitli(h);
 
         let haftalikPuanlar = { "Umut": 0, "ibrahim": 0, "Özkan": 0, "Onur": 0 };
-        let gridHtml = "";
+        let tbodyHtml = "";
 
         let haftaMaclari = Object.keys(dbMaclar)
             .filter(mId => dbMaclar[mId].hafta === h)
@@ -1403,108 +1253,108 @@ html
             const m = dbMaclar[mId];
             let gercekEv = (m.gEv !== undefined) ? m.gEv : "";
             let gercekDep = (m.gDep !== undefined) ? m.gDep : "";
-            let gercekSkor = (gercekEv !== "") ? `${gercekEv} - ${gercekDep}` : "vs";
+            let gercekSkor = (gercekEv !== "") ? `${gercekEv} - ${gercekDep}` : "-";
 
             const mZamani = m.tarih ? new Date(m.tarih).getTime() : Infinity;
             const macBasladi = simdi >= mZamani;
+            let dateFormatted = m.tarih ? new Date(m.tarih).toLocaleString('tr-TR', { dateStyle: 'short', timeStyle: 'short' }) : "Tarih Belirlenmedi";
 
-            const evB = big3.includes(m.ev);
-            const depB = big3.includes(m.dep);
-            let tagHtml = "";
-            if (evB && depB) {
-                tagHtml = `<span class="live-card-tag tag-derby">🔥 DERBİ</span>`;
-            } else if (evB || depB) {
-                tagHtml = `<span class="live-card-tag tag-surprise">⭐ SÜRPRİZ POTANSİYELİ</span>`;
+            // Bu maçta her oyuncunun aldığı puanı önce hesaplayalım (en yüksek alanı vurgulamak için)
+            let matchPlayerPoints = {};
+            let maxPointsInMatch = -1;
+
+            if (gercekEv !== "") {
+                oyuncular.forEach(o => {
+                    if (dbTahminler[mId] && dbTahminler[mId][o]) {
+                        let t = dbTahminler[mId][o];
+                        if (t.ev !== "" && t.dep !== "") {
+                            let p = puanHesapla(m.ev, m.dep, parseInt(gercekEv), parseInt(gercekDep), parseInt(t.ev), parseInt(t.dep));
+                            matchPlayerPoints[o] = p;
+                            if (p > maxPointsInMatch) {
+                                maxPointsInMatch = p;
+                            }
+                        }
+                    }
+                });
             }
 
-            let predBoxesHtml = "";
+            let playerCols = "";
             oyuncular.forEach(o => {
                 let hasPred = (dbTahminler[mId] && dbTahminler[mId][o] && dbTahminler[mId][o].ev !== "" && dbTahminler[mId][o].dep !== "");
-                let playerColor = oyuncuTekRenk[o];
+                const gosterilsinMi = (o === currentUser) || haftaKilitli || macBasladi;
 
-                const skorGosterilsinMi = (o === currentUser) || haftaKilitli || macBasladi;
+                let cellContent = "";
 
-                if(skorGosterilsinMi) {
-                    if(hasPred) {
+                if (gosterilsinMi) {
+                    if (hasPred) {
                         let t = dbTahminler[mId][o];
                         let tStr = `${t.ev} - ${t.dep}`;
-                        let pointsBadge = "";
+                        let pVal = null;
 
-                        if(gercekEv !== "") {
-                            let calcP = puanHesapla(m.ev, m.dep, parseInt(gercekEv), parseInt(gercekDep), parseInt(t.ev), parseInt(t.dep));
-                            haftalikPuanlar[o] += calcP;
-                            pointsBadge = `<span class="points-pill ${calcP === 0 ? 'points-zero' : ''}">+${calcP}P</span>`;
+                        if (gercekEv !== "") {
+                            pVal = matchPlayerPoints[o] !== undefined ? matchPlayerPoints[o] : 0;
+                            haftalikPuanlar[o] += pVal;
                         }
 
-                        predBoxesHtml += `
-                            <div class="player-pred-box">
-                                <div class="player-pred-info">
-                                    <div class="player-dot" style="background:${playerColor};"></div>
-                                    <span>${o}</span>
-                                </div>
-                                <div>
-                                    <span class="pred-val" style="margin-right:4px;">${tStr}</span>
-                                    ${pointsBadge}
-                                </div>
+                        let pStr = pVal !== null ? `+${pVal} P` : "-";
+                        
+                        // En yüksek puan alan oyuncuya belirgin farklı renk
+                        let isMaxPoint = (pVal !== null && pVal === maxPointsInMatch && maxPointsInMatch > 0);
+                        let pCls = isMaxPoint ? "archive-puan-max" : ((pVal !== null && pVal > 0) ? "archive-puan-val" : "archive-puan-val archive-puan-zero");
+
+                        cellContent = `
+                            <div class="archive-pred-cell">
+                                <span class="archive-tahmin-val">${tStr}</span>
+                                <div class="archive-divider"></div>
+                                <span class="${pCls}">${pStr}</span>
                             </div>
                         `;
                     } else {
-                        predBoxesHtml += `
-                            <div class="player-pred-box">
-                                <div class="player-pred-info">
-                                    <div class="player-dot" style="background:${playerColor};"></div>
-                                    <span>${o}</span>
-                                </div>
-                                <span class="status-badge-not-entered">Girilmedi</span>
+                        cellContent = `
+                            <div class="archive-pred-cell">
+                                <span style="font-size:9px; color:#ef4444; font-weight:700;">Girilmedi</span>
+                                <div class="archive-divider"></div>
+                                <span class="archive-puan-val archive-puan-zero">0 P</span>
                             </div>
                         `;
                     }
                 } else {
-                    if(hasPred) {
-                        predBoxesHtml += `
-                            <div class="player-pred-box">
-                                <div class="player-pred-info">
-                                    <div class="player-dot" style="background:${playerColor};"></div>
-                                    <span>${o}</span>
-                                </div>
-                                <span class="status-badge-entered">🟢 Girildi (Gizli)</span>
-                            </div>
-                        `;
-                    } else {
-                        predBoxesHtml += `
-                            <div class="player-pred-box">
-                                <div class="player-pred-info">
-                                    <div class="player-dot" style="background:${playerColor};"></div>
-                                    <span>${o}</span>
-                                </div>
-                                <span class="status-badge-not-entered">🔴 Girilmedi</span>
-                            </div>
-                        `;
-                    }
+                    let text = hasPred ? "🟢 Girildi" : "🔴 Girilmedi";
+                    let color = hasPred ? "#16a34a" : "#ef4444";
+                    cellContent = `
+                        <div class="archive-pred-cell">
+                            <span style="font-size:9px; font-weight:700; color:${color};">${text}</span>
+                            <div class="archive-divider"></div>
+                            <span class="archive-puan-val archive-puan-zero">Gizli</span>
+                        </div>
+                    `;
                 }
+
+                playerCols += `<td>${cellContent}</td>`;
             });
 
-            gridHtml += `
-                <div class="live-card">
-                    ${tagHtml}
-                    <div class="live-score-header">
-                        <div class="live-team">
-                            <span>${m.ev}</span>
-                        </div>
-                        <div class="live-real-score">${gercekSkor}</div>
-                        <div class="live-team away">
-                            <span>${m.dep}</span>
-                        </div>
+            // Hayalet çizgi ile bölünmüş Maç & Tarih Hücresi
+            tbodyHtml += `<tr>
+                <td style="padding:4px 2px;">
+                    <div class="live-match-cell">
+                        <span class="live-match-date">🗓️ ${dateFormatted}</span>
+                        <div class="ghost-line"></div>
+                        <span class="live-match-teams">${m.ev} <span style="font-weight:normal; color:#64748b;">vs</span> ${m.dep}</span>
                     </div>
-                    <div class="player-predictions-grid">
-                        ${predBoxesHtml}
-                    </div>
-                </div>
-            `;
+                </td>
+                <td style="background:#0f172a; color:#38bdf8; font-weight:800; font-size:12px;">${gercekSkor}</td>
+                ${playerCols}
+            </tr>`;
         });
 
-        document.getElementById('p2MatchesGrid').innerHTML = gridHtml;
+        if (haftaMaclari.length === 0) {
+            tbodyHtml = `<tr><td colspan="6" style="padding:15px; color:#94a3b8; font-weight:bold;">Bu hafta için henüz maç eklenmemiş.</td></tr>`;
+        }
 
+        document.getElementById('p2LiveTableBody').innerHTML = tbodyHtml;
+
+        // CANLI SIRALAMA VE FOOTER OLUŞTURMA
+        let maxLiveTotal = Math.max(...Object.values(haftalikPuanlar));
         let sortedWeekly = oyuncular.map(o => ({
             name: o,
             puan: haftalikPuanlar[o],
@@ -1513,20 +1363,51 @@ html
 
         let rankBadgesHtml = "";
         sortedWeekly.forEach((p, idx) => {
-            let valDisplay = `${p.puan} P`;
+            let isLeader = (p.puan === maxLiveTotal && maxLiveTotal > 0);
+            let leaderCls = isLeader ? "leader-badge" : "";
+            let crown = isLeader ? "👑 " : "";
+
             rankBadgesHtml += `
-                <div class="p2-rank-badge">
-                    <span style="font-size:11px; opacity:0.8;">${idx + 1}. ${p.name}</span>
-                    <strong>${valDisplay}</strong>
+                <div class="p2-rank-badge ${leaderCls}">
+                    <span style="font-size:11px; opacity:0.9;">${idx + 1}. ${crown}${p.name}</span>
+                    <strong>${p.puan} P</strong>
                 </div>
             `;
         });
         document.getElementById('p2LiveRankings').innerHTML = rankBadgesHtml;
 
-        renderWeeklyChart(haftalikPuanlar, true);
+        // TABLO ALTI TOPLAM PUAN SATIRI
+        let footerPlayerCols = "";
+        oyuncular.forEach(o => {
+            let pVal = haftalikPuanlar[o];
+            let isLeader = (pVal === maxLiveTotal && maxLiveTotal > 0);
+            let leaderClass = isLeader ? "archive-footer-leader" : "";
+
+            footerPlayerCols += `
+                <td>
+                    <div class="archive-footer-total ${leaderClass}">
+                        <span style="font-size:9px; opacity:0.8;">${o}</span>
+                        <span class="archive-footer-total-num">${isLeader ? '👑 ' : ''}${pVal} P</span>
+                    </div>
+                </td>
+            `;
+        });
+
+        let tfootHtml = `
+            <tr class="archive-footer-row">
+                <td colspan="2" style="text-align:right; padding-right:8px; letter-spacing:0.5px; color:#1e293b; font-size:11px;">
+                    🏆 <b>${h.toUpperCase()} CANLI TOPLAM:</b>
+                </td>
+                ${footerPlayerCols}
+            </tr>
+        `;
+
+        document.getElementById('p2LiveTableFoot').innerHTML = tfootHtml;
+
+        renderWeeklyChart(haftalikPuanlar);
     }
 
-    function renderWeeklyChart(puanlar, gizliAcik) {
+    function renderWeeklyChart(puanlar) {
         const ctx = document.getElementById('weeklyChart').getContext('2d');
         
         let chartData = oyuncular.map(o => puanlar[o]);
@@ -1655,330 +1536,10 @@ html
         });
     }
 
-    /* =========================================================================
-       SAYFA 7: YENİLENMİŞ & ZENGİNLEŞTİRİLMİŞ DETAYLI ANALİZ
-       ========================================================================= */
-    function renderPage7() {
-        let stats = {};
-        oyuncular.forEach(o => {
-            stats[o] = {
-                toplamPuan: 0,
-                toplamTahmin: 0,
-                tamSkor: 0,
-                dogruTaraf: 0,
-                kilPayi: 0,
-                kahin: 0,
-                derbiPuan: 0,
-                evSahibiTahminCount: 0,
-                surprizTahminCount: 0,
-                takimPuan: {},
-                haftaPuanlari: Array(35).fill(0),
-                h2h: {},
-                skorSayilari: {},
-                toplamTahminEdilenGol: 0
-            };
-            oyuncular.forEach(r => {
-                if (r !== o) stats[o].h2h[r] = { win: 0, loss: 0, draw: 0 };
-            });
-        });
-
-        // Bütün maç verilerinin işlenmesi
-        Object.keys(dbMaclar).forEach(mId => {
-            const m = dbMaclar[mId];
-            if(m.gEv !== "" && m.gEv !== undefined) {
-                const gE = parseInt(m.gEv);
-                const gD = parseInt(m.gDep);
-                const isDerby = big3.includes(m.ev) && big3.includes(m.dep);
-                let bilenler = [];
-                let macPuanlari = {};
-
-                oyuncular.forEach(o => {
-                    macPuanlari[o] = 0;
-                    if(dbTahminler[mId] && dbTahminler[mId][o] && dbTahminler[mId][o].ev !== "" && dbTahminler[mId][o].dep !== "") {
-                        const t = dbTahminler[mId][o];
-                        const tE = parseInt(t.ev);
-                        const tD = parseInt(t.dep);
-                        const skorKey = `${tE}-${tD}`;
-                        
-                        // Favori Skor & Gol Ortalaması Hesaplaması
-                        stats[o].skorSayilari[skorKey] = (stats[o].skorSayilari[skorKey] || 0) + 1;
-                        stats[o].toplamTahminEdilenGol += (tE + tD);
-                        stats[o].toplamTahmin += 1;
-
-                        const predSide = tE > tD ? 1 : (tE < tD ? 2 : 0);
-                        const p = puanHesapla(m.ev, m.dep, gE, gD, tE, tD);
-
-                        macPuanlari[o] = p;
-                        stats[o].toplamPuan += p;
-
-                        if(predSide === 1) stats[o].evSahibiTahminCount++;
-                        if(predSide === 0 || predSide === 2) stats[o].surprizTahminCount++;
-
-                        if(p > 0) {
-                            stats[o].dogruTaraf++;
-                            if(!stats[o].takimPuan[m.ev]) stats[o].takimPuan[m.ev] = 0;
-                            if(!stats[o].takimPuan[m.dep]) stats[o].takimPuan[m.dep] = 0;
-                            stats[o].takimPuan[m.ev] += p;
-                            stats[o].takimPuan[m.dep] += p;
-                        }
-
-                        if(gE === tE && gD === tD) {
-                            stats[o].tamSkor++;
-                            bilenler.push(o);
-                        } else {
-                            let totalDiff = Math.abs(gE - tE) + Math.abs(gD - tD);
-                            if(totalDiff === 1) {
-                                stats[o].kilPayi++;
-                            }
-                        }
-
-                        if(isDerby) {
-                            stats[o].derbiPuan += p;
-                        }
-
-                        const hNum = parseInt(m.hafta.replace('. Hafta',''));
-                        if(hNum) stats[o].haftaPuanlari[hNum] += p;
-                    }
-                });
-
-                // DÜELLO (H2H) HESAPLAMASI
-                for (let i = 0; i < oyuncular.length; i++) {
-                    for (let j = i + 1; j < oyuncular.length; j++) {
-                        let p1 = oyuncular[i];
-                        let p2 = oyuncular[j];
-
-                        let p1Valid = dbTahminler[mId] && dbTahminler[mId][p1] && dbTahminler[mId][p1].ev !== "";
-                        let p2Valid = dbTahminler[mId] && dbTahminler[mId][p2] && dbTahminler[mId][p2].ev !== "";
-
-                        if (p1Valid && p2Valid) {
-                            let score1 = macPuanlari[p1];
-                            let score2 = macPuanlari[p2];
-
-                            if (score1 > score2) {
-                                stats[p1].h2h[p2].win++;
-                                stats[p2].h2h[p1].loss++;
-                            } else if (score2 > score1) {
-                                stats[p2].h2h[p1].win++;
-                                stats[p1].h2h[p2].draw++;
-                            } else {
-                                stats[p1].h2h[p2].draw++;
-                                stats[p2].h2h[p1].draw++;
-                            }
-                        }
-                    }
-                }
-
-                if(bilenler.length === 1) {
-                    stats[bilenler[0]].kahin++;
-                }
-            }
-        });
-
-        // SERİ VE ZİRVE ANALİZİ
-        let haftalikMatrix = getHaftalikVeriler();
-        let oynananHaftalar = [];
-        let oyuncuSeriler = { "Umut": 0, "ibrahim": 0, "Özkan": 0, "Onur": 0 };
-        let oyuncuMaxSeriler = { "Umut": 0, "ibrahim": 0, "Özkan": 0, "Onur": 0 };
-
-        for(let i=1; i<=34; i++) {
-            let hName = `${i}. Hafta`;
-            if(haftalikMatrix[hName].oynandi) {
-                oynananHaftalar.push(i);
-                let maxP = -1;
-                oyuncular.forEach(o => {
-                    if(haftalikMatrix[hName][o] > maxP) maxP = haftalikMatrix[hName][o];
-                });
-
-                if(maxP > 0) {
-                    let liderler = oyuncular.filter(o => haftalikMatrix[hName][o] === maxP);
-                    oyuncular.forEach(o => {
-                        if (liderler.includes(o)) {
-                            oyuncuSeriler[o]++;
-                            if (oyuncuSeriler[o] > oyuncuMaxSeriler[o]) {
-                                oyuncuMaxSeriler[o] = oyuncuSeriler[o];
-                            }
-                        } else {
-                            oyuncuSeriler[o] = 0;
-                        }
-                    });
-                }
-            }
-        }
-
-        let containerHtml = "";
-
-        // OYUNCULAR İÇİN ANALİZ KARTLARI
-        oyuncular.forEach(o => {
-            let s = stats[o];
-            let pm = s.toplamTahmin > 0 ? (s.toplamPuan / s.toplamTahmin).toFixed(2) : "0.00";
-            let isabetOrani = s.toplamTahmin > 0 ? ((s.dogruTaraf / s.toplamTahmin) * 100).toFixed(1) : "0.0";
-            let tamSkorOrani = s.toplamTahmin > 0 ? ((s.tamSkor / s.toplamTahmin) * 100).toFixed(1) : "0.0";
-            let avgGol = s.toplamTahmin > 0 ? (s.toplamTahminEdilenGol / s.toplamTahmin).toFixed(1) : "0.0";
-
-            // En Çok Tercih Edilen Skor Bulma
-            let favSkor = "-";
-            let favSkorAdet = 0;
-            Object.keys(s.skorSayilari).forEach(sk => {
-                if (s.skorSayilari[sk] > favSkorAdet) {
-                    favSkorAdet = s.skorSayilari[sk];
-                    favSkor = sk;
-                }
-            });
-
-            // Dinamik Oyuncu Profili Unvanı
-            let profilTag = "🛡️ Dengeli";
-            if (parseFloat(avgGol) >= 3.0) profilTag = "⚽ Hücumcu / Üstçü";
-            else if (parseFloat(avgGol) <= 2.1) profilTag = "🔒 Defansif / Altçı";
-            else if (s.evSahibiTahminCount / s.toplamTahmin > 0.55) profilTag = "🏰 Ev Sahibi Takipçisi";
-
-            let activeWeeklyPoints = oynananHaftalar.map(h => s.haftaPuanlari[h]);
-            let enIyiHafta = activeWeeklyPoints.length > 0 ? Math.max(...activeWeeklyPoints) : 0;
-
-            let favTeam = "-", kabusTeam = "-";
-            let maxTP = -1, minTP = 999;
-            Object.keys(s.takimPuan).forEach(t => {
-                if(s.takimPuan[t] > maxTP) { maxTP = s.takimPuan[t]; favTeam = t; }
-                if(s.takimPuan[t] < minTP) { minTP = s.takimPuan[t]; kabusTeam = t; }
-            });
-
-            let evAski = s.toplamTahmin > 0 ? ((s.evSahibiTahminCount / s.toplamTahmin) * 100).toFixed(0) : "0";
-            let surprizOrani = s.toplamTahmin > 0 ? ((s.surprizTahminCount / s.toplamTahmin) * 100).toFixed(0) : "0";
-            let maxStreak = oyuncuMaxSeriler[o];
-
-            // ROZETLER
-            let badges = [];
-            badges.push(`🏷️ ${profilTag}`);
-            if(s.kahin > 0) badges.push(`🔮 Kahin (${s.kahin} Tek Başına Bilen)`);
-            if(s.kilPayi > 0) badges.push(`🎯 Kıl Payı (${s.kilPayi} Maç 1 Golle Kaçtı)`);
-            if(maxStreak > 1) badges.push(`🔥 ${maxStreak} Hafta Zirve Serisi`);
-            if(parseFloat(evAski) > 55) badges.push(`🏰 Ev Aşkı (%${evAski})`);
-            if(parseFloat(surprizOrani) > 40) badges.push(`💣 Sürpriz Avcısı (%${surprizOrani})`);
-            if(s.derbiPuan >= 10) badges.push(`⚔️ Derbi Kralı (${s.derbiPuan} P)`);
-
-            let last5 = oynananHaftalar.slice(-5);
-            let formDotsHtml = "";
-            last5.forEach(h => {
-                let p = s.haftaPuanlari[h];
-                let cls = p >= 6 ? "fd-win" : (p >= 2 ? "fd-draw" : "fd-loss");
-                formDotsHtml += `<div class="form-dot ${cls}" title="${h}. Hafta: ${p} Puan">${p}</div>`;
-            });
-
-            let badgeChipsHtml = badges.map(b => `<span class="v2-badge-chip">${b}</span>`).join(" ");
-
-            // DÜELLO (H2H) KARTLARI
-            let h2hCardsHtml = "";
-            Object.keys(s.h2h).forEach(rival => {
-                let d = s.h2h[rival];
-                let totalDuals = d.win + d.draw + d.loss;
-                let winPct = totalDuals > 0 ? Math.round((d.win / totalDuals) * 100) : 0;
-                let drawPct = totalDuals > 0 ? Math.round((d.draw / totalDuals) * 100) : 0;
-                let lossPct = totalDuals > 0 ? (100 - winPct - drawPct) : 0;
-
-                let statusPill = d.win > d.loss ? `<span class="h2h-pill-win">Önde (+${d.win - d.loss})</span>` :
-                                (d.loss > d.win ? `<span class="h2h-pill-loss">Geride (-${d.loss - d.win})</span>` :
-                                `<span class="h2h-pill-draw">Dengede</span>`);
-
-                h2hCardsHtml += `
-                    <div class="h2h-card">
-                        <div class="h2h-card-header">
-                            <span>vs ${rival}</span>
-                            ${statusPill}
-                        </div>
-                        <div class="h2h-stat-bar-wrapper" title="${d.win} Galibiyet - ${d.draw} Beraberlik - ${d.loss} Mağlubiyet">
-                            <div class="h2h-bar-win" style="width: ${winPct}%;"></div>
-                            <div class="h2h-bar-draw" style="width: ${drawPct}%;"></div>
-                            <div class="h2h-bar-loss" style="width: ${lossPct}%;"></div>
-                        </div>
-                        <div class="h2h-details-text">
-                            <span style="color:#16a34a;">${d.win} Galibiyet (%${winPct})</span>
-                            <span style="color:#f59e0b;">${d.draw} Beraberlik</span>
-                            <span style="color:#ef4444;">${d.loss} Mağlubiyet</span>
-                        </div>
-                    </div>
-                `;
-            });
-
-            containerHtml += `
-                <div class="u-card-v2">
-                    <div class="u-card-header" style="background: ${oyuncuTekRenk[o]};">
-                        <div class="u-card-user-info">
-                            <div class="u-avatar">${o.substring(0,1)}</div>
-                            <div>
-                                <h4 class="u-title-text">${o}</h4>
-                                <div class="u-sub-text">Toplam: ${s.toplamPuan} Puan | Tahmin Sayısı: ${s.toplamTahmin}</div>
-                            </div>
-                        </div>
-                        <div class="u-form-strip">
-                            <span style="font-size:11px; font-weight:800; color:#cbd5e1; margin-right:4px;">FORM:</span>
-                            ${formDotsHtml || '<span style="font-size:11px; opacity:0.8;">Veri yok</span>'}
-                        </div>
-                    </div>
-
-                    <div class="u-body">
-                        <!-- YENİ GENİŞLETİLMİŞ İSTATİSTİK METRİKLERİ -->
-                        <div class="v2-metrics-grid">
-                            <div class="v2-metric-box purple">
-                                <div class="v2-m-label">Favori Skoru</div>
-                                <div class="v2-m-value">📌 ${favSkor}</div>
-                                <div class="v2-m-sub">${favSkorAdet} Kez Bu Skoru Girdi</div>
-                            </div>
-
-                            <div class="v2-metric-box primary">
-                                <div class="v2-m-label">Maç Başı Ortalama</div>
-                                <div class="v2-m-value">${pm} P</div>
-                                <div class="v2-m-sub">Gol Beklentisi: ${avgGol} Gol/Maç</div>
-                            </div>
-
-                            <div class="v2-metric-box success">
-                                <div class="v2-m-label">Tam Skor İsabeti</div>
-                                <div class="v2-m-value">🎯 ${s.tamSkor}</div>
-                                <div class="v2-m-sub">Tam İsabet Oranı: %${tamSkorOrani}</div>
-                            </div>
-
-                            <div class="v2-metric-box warning">
-                                <div class="v2-m-label">En İyi Hafta / Seri</div>
-                                <div class="v2-m-value">${enIyiHafta} P</div>
-                                <div class="v2-m-sub">Max Zirve Serisi: ${maxStreak} Hafta</div>
-                            </div>
-
-                            <div class="v2-metric-box danger">
-                                <div class="v2-m-label">Taraf & Derbi Verimi</div>
-                                <div class="v2-m-value">%${isabetOrani}</div>
-                                <div class="v2-m-sub">Derbi Puanı: ${s.derbiPuan} P</div>
-                            </div>
-                        </div>
-
-                        <!-- ROZET VE PROFİL CHIPLERİ -->
-                        <div class="v2-badges-flex">
-                            ${badgeChipsHtml}
-                        </div>
-
-                        <!-- KAFA KAFAYA DÜELLO ARENASI -->
-                        <div class="h2h-arena-container">
-                            <div class="h2h-arena-title">
-                                <span>⚔️ BİREBİR ARKADAŞ DÜELLOLARI (H2H)</span>
-                                <span style="font-size:11px; font-weight:600; color:#64748b;">Yeşil: Galibiyet | Sarı: Beraberlik | Kırmızı: Mağlubiyet</span>
-                            </div>
-                            <div class="h2h-matchups-grid">
-                                ${h2hCardsHtml}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-        });
-
-        document.getElementById('analyticsContainer').innerHTML = containerHtml;
-    }
-
-    /* =========================================================================
-       SAYFA 3: GÜNCELLENMİŞ SEZON ARŞİVİ (%25 KÜÇÜLTÜLMÜŞ SÜTUN VE HÜCRELER)
-       ========================================================================= */
     function renderPage3() {
         const secilenHafta = document.getElementById('p3HaftaFilter').value;
         let tbody = "";
 
-        // Oyuncu bazında toplam puan takibi (seçilen filtreye göre dinamik hesaplanır)
         let oyuncuToplamPuanlar = { "Umut": 0, "ibrahim": 0, "Özkan": 0, "Onur": 0 };
 
         Object.keys(dbMaclar).forEach(mId => {
@@ -2057,7 +1618,6 @@ html
 
         document.getElementById('p3TableBody').innerHTML = tbody;
 
-        // EN ALT TOPLAM PUAN SATIRININ OLUŞTURULMASI
         let tfootHtml = "";
         let filterLabel = secilenHafta === "TUMU" ? "TOPLAM SEZON PUANI" : `${secilenHafta.toUpperCase()} TOPLAMI`;
         
