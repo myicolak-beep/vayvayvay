@@ -294,6 +294,34 @@ html
         .logout-btn { background-color: #ef4444; color: white; padding: 10px 14px; font-size: 13px; margin-top: 15px; width: 100%; border-radius: 6px; }
         .winner-tag { background: #fef08a; color: #854d0e; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 11px; }
 
+        /* SAYAÇ BÖLÜMÜ VE SON 24 SAAT VURGUSU */
+        .timer-box {
+            font-size: 14px;
+            font-weight: bold;
+            color: #d97706;
+            margin-top: 8px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            display: inline-block;
+            transition: all 0.3s ease;
+        }
+
+        .timer-urgent {
+            font-size: 20px !important;
+            font-weight: 900 !important;
+            color: #dc2626 !important;
+            background-color: #fef2f2;
+            border: 2px solid #ef4444;
+            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.2);
+            animation: pulse-urgent 1.5s infinite;
+        }
+
+        @keyframes pulse-urgent {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.03); }
+            100% { transform: scale(1); }
+        }
+
         /* ARŞİV TABLOSU STİLLERİ */
         .archive-table { border: 1px solid #cbd5e1; border-radius: 8px; overflow: hidden; font-size: 10px; width: 100%; border-collapse: collapse; }
         .archive-table th { padding: 6px 3px; font-size: 10px; }
@@ -571,7 +599,9 @@ html
         <div style="text-align: center; margin-bottom: 20px;">
             <h3 id="p1Title" style="margin-bottom: 5px;">Aktif Hafta Tahminleriniz</h3>
             <div id="p1Status"></div>
-            <div id="p1Timer" style="font-size: 14px; font-weight: bold; color: #d97706; margin-top: 5px;"></div>
+            <div>
+                <div id="p1Timer" class="timer-box"></div>
+            </div>
         </div>
         <div>
             <div id="p1MatchesContainer" class="matches-grid"></div>
@@ -579,7 +609,7 @@ html
         </div>
     </div>
 
-    <!-- CANLI SKORLAR (GÜNCELLENMİŞ ARŞİV FORMUTU) -->
+    <!-- CANLI SKORLAR (GÜNCELLENMİŞ ARŞİV FORMATI) -->
     <div id="page2" class="page-content hidden">
         <div class="p2-header-summary">
             <div>
@@ -618,7 +648,7 @@ html
     <!-- HAFTALIK ÖZET PUANLAR -->
     <div id="page5" class="page-content hidden">
         <h3 style="text-align:center; margin-bottom:5px;">📅 Haftalık Toplam Tahmin Puanları</h3>
-        <p style="text-align:center; font-size:12px; color:gray; margin-bottom:15px;">Tahmin süresi bitene kadar diğer oyuncuların detaylı tahminleri gizli kalır.</p>
+        <p style="text-align:center; font-size:12px; color:gray; margin-bottom:15px;">Tüm kullanıcılar tahmin girene veya kilit zamanı dolana kadar diğer oyuncuların skorları gizli kalır.</p>
         <table>
             <thead>
                 <tr>
@@ -1023,6 +1053,22 @@ html
         return simdi >= kilitTime;
     }
 
+    // HERKES TAHMİN BİTİRDİ Mİ KONTROLÜ
+    function isHerkesTahminGirdiMi(haftaIsmi) {
+        let haftaMaclari = Object.keys(dbMaclar).filter(mId => dbMaclar[mId].hafta === haftaIsmi);
+        if (haftaMaclari.length === 0) return false;
+
+        for (let mId of haftaMaclari) {
+            for (let o of oyuncular) {
+                let userPred = dbTahminler[mId] && dbTahminler[mId][o];
+                if (!userPred || userPred.ev === "" || userPred.dep === "" || userPred.ev === undefined || userPred.dep === undefined) {
+                    return false; // Eksik tahmin var
+                }
+            }
+        }
+        return true; // 4 oyuncu da tüm maçlara tahmin girmiş
+    }
+
     function startCountdown() {
         if (timerInterval) clearInterval(timerInterval);
 
@@ -1052,13 +1098,14 @@ html
 
             if (kilitTargetTime === Infinity) {
                 timerElem.innerText = "⏳ Bu hafta için aktif son tahmin saati tanımlanmamış.";
-                timerElem.style.color = "#64748b";
+                timerElem.className = "timer-box";
                 return;
             }
 
             const fark = kilitTargetTime - simdi;
             if (fark <= 0) {
                 timerElem.innerText = "🔒 Tahmin Süresi Doldu! (Skorlar Herkese Açıldı)";
+                timerElem.className = "timer-box";
                 timerElem.style.color = "#dc2626";
                 return;
             }
@@ -1068,12 +1115,19 @@ html
             const dakika = Math.floor((fark % (1000 * 60 * 60)) / (1000 * 60));
             const saniye = Math.floor((fark % (1000 * 60)) / 1000);
 
-            let sureMetni = "⏳ Tahminlerin Kilitlenmesine & Skorların Açılmasına Kalan: ";
+            let sureMetni = "";
             if (gun > 0) sureMetni += `${gun}gün `;
-            sureMetni += `${saat}s ${dakika}d ${saniye}s`;
+            sureMetni += `${saat}sa ${dakika}dk ${saniye}sn`;
 
-            timerElem.innerText = sureMetni;
-            timerElem.style.color = "#d97706";
+            // SON 24 SAAT KONTROLÜ (24 saatten az kaldıysa VURGULU VE BÜYÜK YAP)
+            const toplamSaat = fark / (1000 * 60 * 60);
+            if (toplamSaat <= 24) {
+                timerElem.className = "timer-box timer-urgent";
+                timerElem.innerText = `🔥 SON 24 SAAT: ${sureMetni}`;
+            } else {
+                timerElem.className = "timer-box";
+                timerElem.innerText = `⏳ Tahmin Kilitlenmesine Kalan: ${sureMetni}`;
+            }
         }, 1000);
     }
 
@@ -1149,6 +1203,7 @@ html
         const haftaKey = h.replace(/[^a-zA-Z0-9]/g, "");
         const onayliMi = (dbOnaylar[haftaKey] && dbOnaylar[haftaKey][currentUser]) ? true : false;
         const kilitliHafta = isHaftaKilitli(h);
+        const herkesGirdiMi = isHerkesTahminGirdiMi(h);
 
         let containerHtml = "";
         let tumMaclarBasladi = true;
@@ -1178,7 +1233,7 @@ html
 
             containerHtml += `
             <div class="match-card">
-                <div class="match-date-badge">🗓️ ${dateFormatted} ${macBasladi ? '(Başladi/Kilitli)' : ''}</div>
+                <div class="match-date-badge">🗓️ ${dateFormatted} ${macBasladi ? '(Başladı/Kilitli)' : ''}</div>
                 <div class="teams-header">
                     <div class="team-box">
                         <span>${m.ev}</span>
@@ -1207,6 +1262,8 @@ html
         let statusHtml = "";
         if(!herhangiMacVar) {
             statusHtml = `<span class="status-badge status-locked">⚠️ Bu hafta için maç tanımlanmamış.</span>`;
+        } else if(herkesGirdiMi) {
+            statusHtml = `<span class="status-badge status-open" style="background:#dbeafe; color:#1e40af;">🎉 Tüm Oyuncular Tahminlerini Tamamladı! (Kilitler Açıldı)</span>`;
         } else if(kilitliHafta || tumMaclarBasladi) {
             statusHtml = `<span class="status-badge status-locked">🔒 Süre Doldu! Haftalık Tahminler Kilitlendi</span>`;
         } else if(onayliMi) {
@@ -1237,6 +1294,7 @@ html
         
         const simdi = new Date().getTime();
         const haftaKilitli = isHaftaKilitli(h);
+        const herkesGirdiMi = isHerkesTahminGirdiMi(h); // KİLİT AÇILMA KONTROLÜ
 
         let haftalikPuanlar = { "Umut": 0, "ibrahim": 0, "Özkan": 0, "Onur": 0 };
         let tbodyHtml = "";
@@ -1259,7 +1317,6 @@ html
             const macBasladi = simdi >= mZamani;
             let dateFormatted = m.tarih ? new Date(m.tarih).toLocaleString('tr-TR', { dateStyle: 'short', timeStyle: 'short' }) : "Tarih Belirlenmedi";
 
-            // Bu maçta her oyuncunun aldığı puanı önce hesaplayalım (en yüksek alanı vurgulamak için)
             let matchPlayerPoints = {};
             let maxPointsInMatch = -1;
 
@@ -1281,7 +1338,9 @@ html
             let playerCols = "";
             oyuncular.forEach(o => {
                 let hasPred = (dbTahminler[mId] && dbTahminler[mId][o] && dbTahminler[mId][o].ev !== "" && dbTahminler[mId][o].dep !== "");
-                const gosterilsinMi = (o === currentUser) || haftaKilitli || macBasladi;
+                
+                // YENİ GÖSTERİLME KURALI: (1) Kullanıcı Kendisi (2) Herkes Tahminini Girdiyse (3) Kilit Dolduysa (4) Maç Başladıysa
+                const gosterilsinMi = (o === currentUser) || herkesGirdiMi || haftaKilitli || macBasladi;
 
                 let cellContent = "";
 
@@ -1298,7 +1357,6 @@ html
 
                         let pStr = pVal !== null ? `+${pVal} P` : "-";
                         
-                        // En yüksek puan alan oyuncuya belirgin farklı renk
                         let isMaxPoint = (pVal !== null && pVal === maxPointsInMatch && maxPointsInMatch > 0);
                         let pCls = isMaxPoint ? "archive-puan-max" : ((pVal !== null && pVal > 0) ? "archive-puan-val" : "archive-puan-val archive-puan-zero");
 
@@ -1333,7 +1391,6 @@ html
                 playerCols += `<td>${cellContent}</td>`;
             });
 
-            // Hayalet çizgi ile bölünmüş Maç & Tarih Hücresi
             tbodyHtml += `<tr>
                 <td style="padding:4px 2px;">
                     <div class="live-match-cell">
@@ -1353,7 +1410,6 @@ html
 
         document.getElementById('p2LiveTableBody').innerHTML = tbodyHtml;
 
-        // CANLI SIRALAMA VE FOOTER OLUŞTURMA
         let maxLiveTotal = Math.max(...Object.values(haftalikPuanlar));
         let sortedWeekly = oyuncular.map(o => ({
             name: o,
@@ -1376,7 +1432,6 @@ html
         });
         document.getElementById('p2LiveRankings').innerHTML = rankBadgesHtml;
 
-        // TABLO ALTI TOPLAM PUAN SATIRI
         let footerPlayerCols = "";
         oyuncular.forEach(o => {
             let pVal = haftalikPuanlar[o];
@@ -1553,11 +1608,14 @@ html
                 const mZamani = m.tarih ? new Date(m.tarih).getTime() : Infinity;
                 const macBasladi = simdi >= mZamani;
                 const haftaKilitli = isHaftaKilitli(m.hafta);
+                const herkesGirdiMi = isHerkesTahminGirdiMi(m.hafta); // ARŞİV İÇİN KİLİT AÇILMA KONTROLÜ
 
                 let playerCols = "";
                 oyuncular.forEach(o => {
                     let hasPred = (dbTahminler[mId] && dbTahminler[mId][o] && dbTahminler[mId][o].ev !== "" && dbTahminler[mId][o].dep !== "");
-                    const gosterilsinMi = (o === currentUser) || haftaKilitli || macBasladi;
+                    
+                    // GÖSTERİLME KURALI
+                    const gosterilsinMi = (o === currentUser) || herkesGirdiMi || haftaKilitli || macBasladi;
 
                     let cellHtml = "";
 
@@ -1760,7 +1818,7 @@ html
 
         db.ref().update(updates)
             .then(() => {
-                alert("✅ Tahminleriniz başarıyla kaydedildi ve kilitlendi.");
+                alert("✅ Tahminleriniz başarıyla kaydedildi.");
                 if(btn) btn.disabled = false;
             })
             .catch(err => {
