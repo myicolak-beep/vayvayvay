@@ -1,4 +1,3 @@
-html
 <!DOCTYPE html>
 <html lang="tr">
 <head>
@@ -322,24 +321,23 @@ html
             100% { transform: scale(1); }
         }
 
-        /* ARŞİV TABLOSU STİLLERİ */
-        .archive-table { border: 1px solid #cbd5e1; border-radius: 8px; overflow: hidden; font-size: 10px; width: 100%; border-collapse: collapse; }
-        .archive-table th { padding: 6px 3px; font-size: 10px; }
-        .archive-table td { padding: 4px 2px; border: 1px solid #cbd5e1; }
+        /* ARŞİV VE BİRLEŞİK KASA TABLOSU STİLLERİ */
+        .archive-table { border: 1px solid #cbd5e1; border-radius: 8px; overflow: hidden; font-size: 11px; width: 100%; border-collapse: collapse; }
+        .archive-table th { padding: 8px 4px; font-size: 11px; }
+        .archive-table td { padding: 6px 4px; border: 1px solid #cbd5e1; }
         .archive-pred-cell {
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             padding: 2px 1px;
-            line-height: 1.1;
+            line-height: 1.15;
         }
-        .archive-tahmin-val { font-size: 10px; font-weight: 700; color: #334155; }
-        .archive-divider { width: 80%; height: 1px; background-color: #cbd5e1; margin: 2px 0; opacity: 0.6; }
-        .archive-puan-val { font-size: 9px; font-weight: 800; color: #16a34a; }
+        .archive-tahmin-val { font-size: 11px; font-weight: 800; color: #1e293b; }
+        .archive-divider { width: 80%; height: 1px; background-color: #cbd5e1; margin: 3px 0; opacity: 0.6; }
+        .archive-puan-val { font-size: 10px; font-weight: 800; color: #16a34a; }
         .archive-puan-zero { color: #94a3b8; }
         
-        /* EN YÜKSEK PUAN YAZILARI İÇİN BELİRGİN FARKLI RENK */
         .archive-puan-max { 
             background: #fef08a; 
             color: #854d0e; 
@@ -350,21 +348,9 @@ html
             font-size: 10px;
         }
         
-        .archive-footer-row { background-color: #f1f5f9; font-weight: 900; font-size: 11px; border-top: 2px solid #0f172a; }
+        .archive-footer-row { background-color: #f1f5f9; font-weight: 900; font-size: 12px; border-top: 2px solid #0f172a; }
         .archive-footer-total { color: #0f172a; display: flex; flex-direction: column; align-items: center; padding: 4px 1px; }
-        .archive-footer-total-num { color: var(--primary-color); font-size: 11px; font-weight: 900; margin-top: 1px; }
-        
-        /* CANLI LİDER HIGHLIGHT */
-        .archive-footer-leader {
-            background-color: #fef08a !important;
-            border-radius: 6px;
-            padding: 3px 6px;
-            border: 1px solid #facc15;
-        }
-        .archive-footer-leader .archive-footer-total-num {
-            color: #854d0e !important;
-            font-size: 12px;
-        }
+        .archive-footer-total-num { color: var(--primary-color); font-size: 12px; font-weight: 900; margin-top: 1px; }
 
         /* CANLI SONUÇLAR HÜCRE VE HAYALET ÇİZGİ TASARIMI */
         .live-match-cell {
@@ -393,6 +379,24 @@ html
             font-size: 11px;
             font-weight: 800;
             color: #1e293b;
+        }
+
+        /* BİRLEŞİK HAFTALIK KASA HÜCRELERİ */
+        .text-win { color: #16a34a; font-weight: 900; }
+        .text-loss { color: #dc2626; font-weight: 900; }
+        .text-kasa-amt { color: #d97706; font-weight: 900; }
+
+        .kasa-cell-win {
+            background-color: #dcfce7;
+            border-radius: 6px;
+            padding: 4px;
+            border: 1px solid #86efac;
+        }
+        .kasa-cell-loss {
+            background-color: #fee2e2;
+            border-radius: 6px;
+            padding: 4px;
+            border: 1px solid #fca5a5;
         }
 
         /* MODAL STİLLERİ */
@@ -531,6 +535,7 @@ html
         <button class="menu-item-btn active" id="btnMenu1" onclick="selectPageFromMenu(1)">Tahmin Girişi</button>
         <button class="menu-item-btn" id="btnMenu2" onclick="selectPageFromMenu(2)">Canlı Skorlar</button>
         <button class="menu-item-btn" id="btnMenu5" onclick="selectPageFromMenu(5)">📊 Haftalık Özet</button>
+        <button class="menu-item-btn" id="btnMenu8" onclick="selectPageFromMenu(8)">💰 Kasa & Borç Hesabı</button>
         <button class="menu-item-btn" id="btnMenu3" onclick="selectPageFromMenu(3)">Sezon Arşivi</button>
         <button class="menu-item-btn" id="btnMenu6" onclick="selectPageFromMenu(6)">📜 Puan Kuralları</button>
         <button class="menu-item-btn menu-item-admin hidden" id="btnMenu4" onclick="selectPageFromMenu(4)">⚙️ Admin Paneli</button>
@@ -609,7 +614,7 @@ html
         </div>
     </div>
 
-    <!-- CANLI SKORLAR (GÜNCELLENMİŞ ARŞİV FORMATI) -->
+    <!-- CANLI SKORLAR -->
     <div id="page2" class="page-content hidden">
         <div class="p2-header-summary">
             <div>
@@ -619,7 +624,6 @@ html
             <div id="p2LiveRankings" class="p2-live-rankings"></div>
         </div>
 
-        <!-- ARŞİV STİLİNDE CANLI TABLO -->
         <div style="overflow-x:auto; margin-bottom:20px;">
             <table class="archive-table">
                 <thead>
@@ -670,6 +674,32 @@ html
             <div style="position: relative; height: 280px; width: 100%; margin-top:20px;">
                 <canvas id="winnerChart"></canvas>
             </div>
+        </div>
+    </div>
+
+    <!-- HAFTALIK KASA VE BORÇ HESABI SAYFASI (BİRLEŞİK CANLI FORMAT) -->
+    <div id="page8" class="page-content hidden">
+        <h3 style="text-align:center; margin-bottom:5px;">💰 HAFTALIK KASA VE BORÇ DÜZENİ</h3>
+        <p style="text-align:center; font-size:12px; color:#64748b; margin-bottom:15px;">
+            Kaybedenler <b>-350 TL</b> borçlanır. 100 TL'si kasaya aktarılır, kalan 250 TL kazanan(lar)a ödenir.
+        </p>
+
+        <!-- BİRLEŞİK DİNAMİK KASA TABLOSU -->
+        <div style="overflow-x:auto;">
+            <table class="archive-table">
+                <thead>
+                    <tr>
+                        <th style="width:12%;">Hafta</th>
+                        <th style="width:18%; background:#e67e22; color:#fff;">Umut</th>
+                        <th style="width:18%; background:#c0392b; color:#fff;">ibrahim</th>
+                        <th style="width:18%; background:#1a252f; color:#fff;">Özkan</th>
+                        <th style="width:18%; background:#d4ac0d; color:#2c3e50;">Onur</th>
+                        <th style="width:16%; background:#d97706; color:#fff;">🏦 Kasa (+100/k)</th>
+                    </tr>
+                </thead>
+                <tbody id="p8CombinedTableBody"></tbody>
+                <tfoot id="p8CombinedTableFoot"></tfoot>
+            </table>
         </div>
     </div>
 
@@ -933,6 +963,7 @@ html
             renderPage2();
             renderPage3();
             renderPage5();
+            renderPage8();
             if(currentUser === "Yonetici") renderPage4();
         });
     }
@@ -1053,7 +1084,6 @@ html
         return simdi >= kilitTime;
     }
 
-    // HERKES TAHMİN BİTİRDİ Mİ KONTROLÜ
     function isHerkesTahminGirdiMi(haftaIsmi) {
         let haftaMaclari = Object.keys(dbMaclar).filter(mId => dbMaclar[mId].hafta === haftaIsmi);
         if (haftaMaclari.length === 0) return false;
@@ -1062,11 +1092,11 @@ html
             for (let o of oyuncular) {
                 let userPred = dbTahminler[mId] && dbTahminler[mId][o];
                 if (!userPred || userPred.ev === "" || userPred.dep === "" || userPred.ev === undefined || userPred.dep === undefined) {
-                    return false; // Eksik tahmin var
+                    return false;
                 }
             }
         }
-        return true; // 4 oyuncu da tüm maçlara tahmin girmiş
+        return true;
     }
 
     function startCountdown() {
@@ -1119,7 +1149,6 @@ html
             if (gun > 0) sureMetni += `${gun}gün `;
             sureMetni += `${saat}sa ${dakika}dk ${saniye}sn`;
 
-            // SON 24 SAAT KONTROLÜ (24 saatten az kaldıysa VURGULU VE BÜYÜK YAP)
             const toplamSaat = fark / (1000 * 60 * 60);
             if (toplamSaat <= 24) {
                 timerElem.className = "timer-box timer-urgent";
@@ -1284,9 +1313,6 @@ html
         startCountdown();
     }
 
-    /* =========================================================================
-       SAYFA 2: YENİLENMİŞ ARŞİV FORMATINDA CANLI SKORLAR TABLOSU
-       ========================================================================= */
     function renderPage2() {
         const h = dbAyarlar.aktifHafta || "1. Hafta";
         document.getElementById('p2Title').innerText = `${h} Canlı Tahmin Tablosu`;
@@ -1294,7 +1320,7 @@ html
         
         const simdi = new Date().getTime();
         const haftaKilitli = isHaftaKilitli(h);
-        const herkesGirdiMi = isHerkesTahminGirdiMi(h); // KİLİT AÇILMA KONTROLÜ
+        const herkesGirdiMi = isHerkesTahminGirdiMi(h);
 
         let haftalikPuanlar = { "Umut": 0, "ibrahim": 0, "Özkan": 0, "Onur": 0 };
         let tbodyHtml = "";
@@ -1339,7 +1365,6 @@ html
             oyuncular.forEach(o => {
                 let hasPred = (dbTahminler[mId] && dbTahminler[mId][o] && dbTahminler[mId][o].ev !== "" && dbTahminler[mId][o].dep !== "");
                 
-                // YENİ GÖSTERİLME KURALI: (1) Kullanıcı Kendisi (2) Herkes Tahminini Girdiyse (3) Kilit Dolduysa (4) Maç Başladıysa
                 const gosterilsinMi = (o === currentUser) || herkesGirdiMi || haftaKilitli || macBasladi;
 
                 let cellContent = "";
@@ -1591,6 +1616,136 @@ html
         });
     }
 
+    /* =========================================================================
+       SAYFA 8: HAFTALIK KASA VE BORÇ BİRLEŞİK LİSTE FORMATI
+       ========================================================================= */
+    function renderPage8() {
+        let haftalikMatrix = getHaftalikVeriler();
+        let tbodyHtml = "";
+
+        let toplamSezonlukKasa = 0;
+        let oyuncuSezonlukNet = { "Umut": 0, "ibrahim": 0, "Özkan": 0, "Onur": 0 };
+
+        const kaybedenCezasi = 350;
+        const kasayaAktarilan = 100;
+        const kazananHavuzunaKalan = 250;
+
+        let oynananHaftaSayisi = 0;
+
+        for (let i = 1; i <= 34; i++) {
+            let hName = `${i}. Hafta`;
+            let hData = haftalikMatrix[hName];
+
+            if (hData.oynandi) {
+                oynananHaftaSayisi++;
+
+                let maxP = -1;
+                oyuncular.forEach(o => {
+                    if (hData[o] > maxP) maxP = hData[o];
+                });
+
+                let kazananlar = [];
+                let kaybedenler = [];
+
+                if (maxP >= 0) {
+                    oyuncular.forEach(o => {
+                        if (hData[o] === maxP && maxP > 0) {
+                            kazananlar.push(o);
+                        } else {
+                            kaybedenler.push(o);
+                        }
+                    });
+                }
+
+                let kaybedenSayisi = kaybedenler.length;
+                let kazananSayisi = kazananlar.length;
+
+                let haftaKasaTutar = kaybedenSayisi * kasayaAktarilan;
+                toplamSezonlukKasa += haftaKasaTutar;
+
+                let toplamHavuz = kaybedenSayisi * kazananHavuzunaKalan;
+                let kisiBasiKazanc = kazananSayisi > 0 ? (toplamHavuz / kazananSayisi) : 0;
+
+                let playerCols = "";
+
+                oyuncular.forEach(o => {
+                    let isWinner = kazananlar.includes(o);
+                    let net = isWinner ? kisiBasiKazanc : -kaybedenCezasi;
+
+                    oyuncuSezonlukNet[o] += net;
+
+                    let netClass = net > 0 ? 'text-win' : 'text-loss';
+                    let bgCellClass = isWinner ? 'kasa-cell-win' : 'kasa-cell-loss';
+                    let netPrefix = net > 0 ? '+' : '';
+
+                    playerCols += `
+                        <td>
+                            <div class="archive-pred-cell ${bgCellClass}">
+                                <span class="archive-tahmin-val" style="font-size:10px;">${isWinner ? '👑 Kazandı' : '❌ Kaybetti'}</span>
+                                <div class="archive-divider"></div>
+                                <span class="${netClass}">${netPrefix}${net.toFixed(0)} TL</span>
+                            </div>
+                        </td>
+                    `;
+                });
+
+                tbodyHtml += `
+                    <tr>
+                        <td style="font-weight:800; color:#1e293b;">${i}. Hafta</td>
+                        ${playerCols}
+                        <td style="background:#fffbeb;">
+                            <div class="archive-pred-cell">
+                                <span style="font-size:9px; color:#b45309; font-weight:700;">+100×${kaybedenSayisi} Kaybeden</span>
+                                <div class="archive-divider"></div>
+                                <span class="text-kasa-amt">+${haftaKasaTutar} TL</span>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+        if (oynananHaftaSayisi === 0) {
+            tbodyHtml = `<tr><td colspan="6" style="padding:20px; color:#94a3b8; font-weight:bold;">Henüz tamamlanmış/oynanmış hafta verisi bulunmamaktadır.</td></tr>`;
+        }
+
+        document.getElementById('p8CombinedTableBody').innerHTML = tbodyHtml;
+
+        // SEZONLUK KASA VE NET BAKİYE FOOTER SATIRI
+        let footerPlayerCols = "";
+        oyuncular.forEach(o => {
+            let net = oyuncuSezonlukNet[o];
+            let netClass = net > 0 ? 'text-win' : (net < 0 ? 'text-loss' : '');
+            let netPrefix = net > 0 ? '+' : '';
+
+            footerPlayerCols += `
+                <td>
+                    <div class="archive-footer-total">
+                        <span style="font-size:9px; opacity:0.7;">${o} (Net)</span>
+                        <span class="${netClass}" style="font-size:12px; font-weight:900;">${netPrefix}${net.toFixed(0)} TL</span>
+                    </div>
+                </td>
+            `;
+        });
+
+        let tfootHtml = `
+            <tr class="archive-footer-row">
+                <td style="text-align:center; color:#1e293b; font-size:11px;">
+                    🏆 <b>SEZON TOPLAMI</b>
+                </td>
+                ${footerPlayerCols}
+                <td style="background:#fef3c7;">
+                    <div class="archive-footer-total">
+                        <span style="font-size:9px; color:#b45309; font-weight:bold;">KASA BİRİKİMİ</span>
+                        <span style="color:#d97706; font-size:13px; font-weight:900;">+${toplamSezonlukKasa} TL</span>
+                    </div>
+                </td>
+            </tr>
+        `;
+
+        document.getElementById('p8CombinedTableFoot').innerHTML = tfootHtml;
+    }
+
     function renderPage3() {
         const secilenHafta = document.getElementById('p3HaftaFilter').value;
         let tbody = "";
@@ -1608,13 +1763,12 @@ html
                 const mZamani = m.tarih ? new Date(m.tarih).getTime() : Infinity;
                 const macBasladi = simdi >= mZamani;
                 const haftaKilitli = isHaftaKilitli(m.hafta);
-                const herkesGirdiMi = isHerkesTahminGirdiMi(m.hafta); // ARŞİV İÇİN KİLİT AÇILMA KONTROLÜ
+                const herkesGirdiMi = isHerkesTahminGirdiMi(m.hafta);
 
                 let playerCols = "";
                 oyuncular.forEach(o => {
                     let hasPred = (dbTahminler[mId] && dbTahminler[mId][o] && dbTahminler[mId][o].ev !== "" && dbTahminler[mId][o].dep !== "");
                     
-                    // GÖSTERİLME KURALI
                     const gosterilsinMi = (o === currentUser) || herkesGirdiMi || haftaKilitli || macBasladi;
 
                     let cellHtml = "";
