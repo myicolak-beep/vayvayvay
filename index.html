@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="tr">
 <head>
@@ -467,6 +468,7 @@
             <option value="ibrahim">ibrahim</option>
             <option value="Özkan">Özkan</option>
             <option value="Onur">Onur</option>
+            <option value="Serkan">Serkan</option>
         </select>
 
         <label><b>Şifre:</b></label>
@@ -594,6 +596,7 @@
                 <option value="ibrahim">ibrahim</option>
                 <option value="Özkan">Özkan</option>
                 <option value="Onur">Onur</option>
+                <option value="Serkan">Serkan</option>
             </select>
             <button type="button" onclick="adminSifreSifirla()" style="background:#2563eb; color:white; padding:6px 12px; font-size:12px; border-radius:4px;">Şifreyi Sıfırla (1234 Yap)</button>
         </div>
@@ -628,12 +631,13 @@
             <table class="archive-table">
                 <thead>
                     <tr>
-                        <th style="width:34%;">Maç & Tarih</th>
-                        <th style="width:14%; background:#0f172a; color:#fff;">Gerçek</th>
-                        <th style="width:13%; background:#e67e22; color:#fff;">Umut</th>
-                        <th style="width:13%; background:#c0392b; color:#fff;">ibrahim</th>
-                        <th style="width:13%; background:#1a252f; color:#fff;">Özkan</th>
-                        <th style="width:13%; background:#d4ac0d; color:#2c3e50;">Onur</th>
+                        <th style="width:30%;">Maç & Tarih</th>
+                        <th style="width:12%; background:#0f172a; color:#fff;">Gerçek</th>
+                        <th style="width:11%; background:#e67e22; color:#fff;">Umut</th>
+                        <th style="width:11%; background:#c0392b; color:#fff;">ibrahim</th>
+                        <th style="width:11%; background:#1a252f; color:#fff;">Özkan</th>
+                        <th style="width:11%; background:#d4ac0d; color:#2c3e50;">Onur</th>
+                        <th style="width:11%; background:#8b5cf6; color:#fff;">Serkan</th>
                     </tr>
                 </thead>
                 <tbody id="p2LiveTableBody"></tbody>
@@ -653,19 +657,22 @@
     <div id="page5" class="page-content hidden">
         <h3 style="text-align:center; margin-bottom:5px;">📅 Haftalık Toplam Tahmin Puanları</h3>
         <p style="text-align:center; font-size:12px; color:gray; margin-bottom:15px;">Tüm kullanıcılar tahmin girene veya kilit zamanı dolana kadar diğer oyuncuların skorları gizli kalır.</p>
-        <table>
-            <thead>
-                <tr>
-                    <th>Hafta</th>
-                    <th style="background:#e67e22;">Umut</th>
-                    <th style="background:#c0392b;">ibrahim</th>
-                    <th style="background:#1a252f;">Özkan</th>
-                    <th style="background:#d4ac0d; color:#2c3e50;">Onur</th>
-                    <th style="background:var(--primary-color);">👑 Haftanın Birincisi</th>
-                </tr>
-            </thead>
-            <tbody id="p5TableBody"></tbody>
-        </table>
+        <div style="overflow-x:auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Hafta</th>
+                        <th style="background:#e67e22;">Umut</th>
+                        <th style="background:#c0392b;">ibrahim</th>
+                        <th style="background:#1a252f;">Özkan</th>
+                        <th style="background:#d4ac0d; color:#2c3e50;">Onur</th>
+                        <th style="background:#8b5cf6;">Serkan</th>
+                        <th style="background:var(--primary-color);">👑 Haftanın Birincisi</th>
+                    </tr>
+                </thead>
+                <tbody id="p5TableBody"></tbody>
+            </table>
+        </div>
 
         <div class="chart-card">
             <h4 style="margin-bottom:5px; color:#1e293b;">👑 Toplam Hafta Birincilikleri (Şampiyonluk Sıralaması)</h4>
@@ -677,24 +684,25 @@
         </div>
     </div>
 
-    <!-- HAFTALIK KASA VE BORÇ HESABI SAYFASI (BİRLEŞİK CANLI FORMAT) -->
+    <!-- HAFTALIK KASA VE BORÇ HESABI SAYFASI -->
     <div id="page8" class="page-content hidden">
         <h3 style="text-align:center; margin-bottom:5px;">💰 HAFTALIK KASA VE BORÇ DÜZENİ</h3>
         <p style="text-align:center; font-size:12px; color:#64748b; margin-bottom:15px;">
-            Kaybedenler <b>-350 TL</b> borçlanır. 100 TL'si kasaya aktarılır, kalan 250 TL kazanan(lar)a ödenir.
+            Kaybedenler <b>-350 TL</b> borçlanır (100 TL kasaya, 250 TL kazananlara). <b>Serkan</b> kaybettiğinde ise kasaya aktarım yapmaz, sadece kazanan(lar)a <b>-250 TL</b> öder.
         </p>
 
-        <!-- BİRLEŞİK DİNAMİK KASA TABLOSU -->
+        <!-- DİNAMİK KASA TABLOSU -->
         <div style="overflow-x:auto;">
             <table class="archive-table">
                 <thead>
                     <tr>
-                        <th style="width:12%;">Hafta</th>
-                        <th style="width:18%; background:#e67e22; color:#fff;">Umut</th>
-                        <th style="width:18%; background:#c0392b; color:#fff;">ibrahim</th>
-                        <th style="width:18%; background:#1a252f; color:#fff;">Özkan</th>
-                        <th style="width:18%; background:#d4ac0d; color:#2c3e50;">Onur</th>
-                        <th style="width:16%; background:#d97706; color:#fff;">🏦 Kasa (+100/k)</th>
+                        <th style="width:10%;">Hafta</th>
+                        <th style="width:15%; background:#e67e22; color:#fff;">Umut</th>
+                        <th style="width:15%; background:#c0392b; color:#fff;">ibrahim</th>
+                        <th style="width:15%; background:#1a252f; color:#fff;">Özkan</th>
+                        <th style="width:15%; background:#d4ac0d; color:#2c3e50;">Onur</th>
+                        <th style="width:15%; background:#8b5cf6; color:#fff;">Serkan</th>
+                        <th style="width:15%; background:#d97706; color:#fff;">🏦 Kasa (+100/k)</th>
                     </tr>
                 </thead>
                 <tbody id="p8CombinedTableBody"></tbody>
@@ -720,13 +728,14 @@
                 <thead>
                     <tr>
                         <th style="width:5%;">Ha</th>
-                        <th style="width:17%;">Ev Sahibi</th>
-                        <th style="width:17%;">Deplasman</th>
+                        <th style="width:16%;">Ev Sahibi</th>
+                        <th style="width:16%;">Deplasman</th>
                         <th style="width:9%; background:#0f172a; color:#fff;">Gerçek</th>
-                        <th style="width:7%; background:#e67e22; color:#fff;">Umut</th>
-                        <th style="width:7%; background:#c0392b; color:#fff;">ibrahim</th>
-                        <th style="width:7%; background:#1a252f; color:#fff;">Özkan</th>
-                        <th style="width:7%; background:#d4ac0d; color:#2c3e50;">Onur</th>
+                        <th style="width:10%; background:#e67e22; color:#fff;">Umut</th>
+                        <th style="width:10%; background:#c0392b; color:#fff;">ibrahim</th>
+                        <th style="width:10%; background:#1a252f; color:#fff;">Özkan</th>
+                        <th style="width:10%; background:#d4ac0d; color:#2c3e50;">Onur</th>
+                        <th style="width:10%; background:#8b5cf6; color:#fff;">Serkan</th>
                     </tr>
                 </thead>
                 <tbody id="p3TableBody"></tbody>
@@ -806,13 +815,16 @@
     const db = firebase.database();
 
     const big3 = ["Galatasaray", "Fenerbahçe", "Beşiktaş"];
-    const oyuncular = ["Umut", "ibrahim", "Özkan", "Onur"];
+    
+    const oyuncular = ["Umut", "ibrahim", "Özkan", "Onur", "Serkan"];
+    const kasaOyunculari = ["Umut", "ibrahim", "Özkan", "Onur"]; // Kurucu 4 oyuncu
     
     const oyuncuTekRenk = {
         "Umut": "#e67e22",
         "ibrahim": "#c0392b",
         "Özkan": "#1a252f",
-        "Onur": "#d4ac0d"
+        "Onur": "#d4ac0d",
+        "Serkan": "#8b5cf6"
     };
     
     const varsayilanSifreler = {
@@ -820,7 +832,8 @@
         "Umut": { sifre: "1234", sifreDegisti: false },
         "ibrahim": { sifre: "1234", sifreDegisti: false },
         "Özkan": { sifre: "1234", sifreDegisti: false },
-        "Onur": { sifre: "1234", sifreDegisti: false }
+        "Onur": { sifre: "1234", sifreDegisti: false },
+        "Serkan": { sifre: "1234", sifreDegisti: false }
     };
 
     let currentUser = "";
@@ -973,7 +986,7 @@
         const txtElem = document.getElementById('loginAktifHaftaText');
         if (txtElem) txtElem.innerText = `(${h})`;
 
-        let haftalikLivePuanlar = { "Umut": 0, "ibrahim": 0, "Özkan": 0, "Onur": 0 };
+        let haftalikLivePuanlar = { "Umut": 0, "ibrahim": 0, "Özkan": 0, "Onur": 0, "Serkan": 0 };
         Object.keys(dbMaclar).forEach(mId => {
             const m = dbMaclar[mId];
             if (m.hafta === h && m.gEv !== undefined && m.gEv !== "") {
@@ -1009,8 +1022,8 @@
         const liveElem = document.getElementById('loginLiveTableBody');
         if (liveElem) liveElem.innerHTML = liveTbody;
 
-        let toplamPuanlar = { "Umut": 0, "ibrahim": 0, "Özkan": 0, "Onur": 0 };
-        let birincilikSayilari = { "Umut": 0, "ibrahim": 0, "Özkan": 0, "Onur": 0 };
+        let toplamPuanlar = { "Umut": 0, "ibrahim": 0, "Özkan": 0, "Onur": 0, "Serkan": 0 };
+        let birincilikSayilari = { "Umut": 0, "ibrahim": 0, "Özkan": 0, "Onur": 0, "Serkan": 0 };
         let haftalikMatrix = getHaftalikVeriler();
 
         for (let i = 1; i <= 34; i++) {
@@ -1084,12 +1097,28 @@
         return simdi >= kilitTime;
     }
 
+    function serkanHaftayaKatildiMi(haftaIsmi) {
+        let hNum = parseInt(haftaIsmi);
+        if (hNum > 6) return true;
+
+        let haftaMaclari = Object.keys(dbMaclar).filter(mId => dbMaclar[mId].hafta === haftaIsmi);
+        for (let mId of haftaMaclari) {
+            let t = dbTahminler[mId] && dbTahminler[mId]["Serkan"];
+            if (t && t.ev !== "" && t.ev !== undefined) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     function isHerkesTahminGirdiMi(haftaIsmi) {
         let haftaMaclari = Object.keys(dbMaclar).filter(mId => dbMaclar[mId].hafta === haftaIsmi);
         if (haftaMaclari.length === 0) return false;
 
+        let kontrolOyunculari = serkanHaftayaKatildiMi(haftaIsmi) ? oyuncular : kasaOyunculari;
+
         for (let mId of haftaMaclari) {
-            for (let o of oyuncular) {
+            for (let o of kontrolOyunculari) {
                 let userPred = dbTahminler[mId] && dbTahminler[mId][o];
                 if (!userPred || userPred.ev === "" || userPred.dep === "" || userPred.ev === undefined || userPred.dep === undefined) {
                     return false;
@@ -1190,7 +1219,7 @@
         let haftalikMatrix = {};
         for(let i=1; i<=34; i++) {
             let hName = `${i}. Hafta`;
-            haftalikMatrix[hName] = { "Umut":0, "ibrahim":0, "Özkan":0, "Onur":0, oynandi: false };
+            haftalikMatrix[hName] = { "Umut":0, "ibrahim":0, "Özkan":0, "Onur":0, "Serkan":0, oynandi: false };
         }
 
         Object.keys(dbMaclar).forEach(mId => {
@@ -1322,7 +1351,7 @@
         const haftaKilitli = isHaftaKilitli(h);
         const herkesGirdiMi = isHerkesTahminGirdiMi(h);
 
-        let haftalikPuanlar = { "Umut": 0, "ibrahim": 0, "Özkan": 0, "Onur": 0 };
+        let haftalikPuanlar = { "Umut": 0, "ibrahim": 0, "Özkan": 0, "Onur": 0, "Serkan": 0 };
         let tbodyHtml = "";
 
         let haftaMaclari = Object.keys(dbMaclar)
@@ -1430,7 +1459,7 @@
         });
 
         if (haftaMaclari.length === 0) {
-            tbodyHtml = `<tr><td colspan="6" style="padding:15px; color:#94a3b8; font-weight:bold;">Bu hafta için henüz maç eklenmemiş.</td></tr>`;
+            tbodyHtml = `<tr><td colspan="7" style="padding:15px; color:#94a3b8; font-weight:bold;">Bu hafta için henüz maç eklenmemiş.</td></tr>`;
         }
 
         document.getElementById('p2LiveTableBody').innerHTML = tbodyHtml;
@@ -1526,7 +1555,7 @@
         let haftalikMatrix = getHaftalikVeriler();
         let tbody = "";
 
-        let birincilikPuanlari = { "Umut": 0, "ibrahim": 0, "Özkan": 0, "Onur": 0 };
+        let birincilikPuanlari = { "Umut": 0, "ibrahim": 0, "Özkan": 0, "Onur": 0, "Serkan": 0 };
 
         for(let i=1; i<=34; i++) {
             let hName = `${i}. Hafta`;
@@ -1617,16 +1646,19 @@
     }
 
     /* =========================================================================
-       SAYFA 8: HAFTALIK KASA VE BORÇ BİRLEŞİK LİSTE FORMATI
+       SAYFA 8: HAFTALIK KASA VE BORÇ HESABI
+       - Kurucu 4 Oyuncu: Kaybettiğinde -350 TL (100 TL Kasaya, 250 TL Kazananlara)
+       - Serkan: Kaybettiğinde -250 TL (0 TL Kasaya, 250 TL Kazananlara)
        ========================================================================= */
     function renderPage8() {
         let haftalikMatrix = getHaftalikVeriler();
         let tbodyHtml = "";
 
         let toplamSezonlukKasa = 0;
-        let oyuncuSezonlukNet = { "Umut": 0, "ibrahim": 0, "Özkan": 0, "Onur": 0 };
+        let oyuncuSezonlukNet = { "Umut": 0, "ibrahim": 0, "Özkan": 0, "Onur": 0, "Serkan": 0 };
 
-        const kaybedenCezasi = 350;
+        const kurucuKaybedenCezasi = 350;
+        const serkanKaybedenCezasi = 250;
         const kasayaAktarilan = 100;
         const kazananHavuzunaKalan = 250;
 
@@ -1639,8 +1671,15 @@
             if (hData.oynandi) {
                 oynananHaftaSayisi++;
 
+                let serkanKatildi = serkanHaftayaKatildiMi(hName);
+
+                let aktifOyuncular = ["Umut", "ibrahim", "Özkan", "Onur"];
+                if (serkanKatildi) {
+                    aktifOyuncular.push("Serkan");
+                }
+
                 let maxP = -1;
-                oyuncular.forEach(o => {
+                aktifOyuncular.forEach(o => {
                     if (hData[o] > maxP) maxP = hData[o];
                 });
 
@@ -1648,7 +1687,7 @@
                 let kaybedenler = [];
 
                 if (maxP >= 0) {
-                    oyuncular.forEach(o => {
+                    aktifOyuncular.forEach(o => {
                         if (hData[o] === maxP && maxP > 0) {
                             kazananlar.push(o);
                         } else {
@@ -1657,36 +1696,57 @@
                     });
                 }
 
-                let kaybedenSayisi = kaybedenler.length;
+                let kurucuKaybedenler = kaybedenler.filter(o => o !== "Serkan");
+                let serkanKaybetti = kaybedenler.includes("Serkan");
+
+                let kurucuKaybedenSayisi = kurucuKaybedenler.length;
                 let kazananSayisi = kazananlar.length;
 
-                let haftaKasaTutar = kaybedenSayisi * kasayaAktarilan;
+                let haftaKasaTutar = kurucuKaybedenSayisi * kasayaAktarilan;
                 toplamSezonlukKasa += haftaKasaTutar;
 
-                let toplamHavuz = kaybedenSayisi * kazananHavuzunaKalan;
+                let toplamHavuz = (kurucuKaybedenSayisi * kazananHavuzunaKalan) + (serkanKaybetti ? serkanKaybedenCezasi : 0);
                 let kisiBasiKazanc = kazananSayisi > 0 ? (toplamHavuz / kazananSayisi) : 0;
 
                 let playerCols = "";
 
                 oyuncular.forEach(o => {
-                    let isWinner = kazananlar.includes(o);
-                    let net = isWinner ? kisiBasiKazanc : -kaybedenCezasi;
+                    if (o === "Serkan" && !serkanKatildi) {
+                        playerCols += `
+                            <td>
+                                <div class="archive-pred-cell" style="background:#f1f5f9; border-radius:6px; padding:4px;">
+                                    <span class="archive-tahmin-val" style="font-size:10px; color:#94a3b8;">➖ Oynamadı</span>
+                                    <div class="archive-divider"></div>
+                                    <span style="font-size:11px; font-weight:800; color:#94a3b8;">0 TL</span>
+                                </div>
+                            </td>
+                        `;
+                    } else {
+                        let isWinner = kazananlar.includes(o);
+                        let net = 0;
 
-                    oyuncuSezonlukNet[o] += net;
+                        if (isWinner) {
+                            net = kisiBasiKazanc;
+                        } else {
+                            net = (o === "Serkan") ? -serkanKaybedenCezasi : -kurucuKaybedenCezasi;
+                        }
 
-                    let netClass = net > 0 ? 'text-win' : 'text-loss';
-                    let bgCellClass = isWinner ? 'kasa-cell-win' : 'kasa-cell-loss';
-                    let netPrefix = net > 0 ? '+' : '';
+                        oyuncuSezonlukNet[o] += net;
 
-                    playerCols += `
-                        <td>
-                            <div class="archive-pred-cell ${bgCellClass}">
-                                <span class="archive-tahmin-val" style="font-size:10px;">${isWinner ? '👑 Kazandı' : '❌ Kaybetti'}</span>
-                                <div class="archive-divider"></div>
-                                <span class="${netClass}">${netPrefix}${net.toFixed(0)} TL</span>
-                            </div>
-                        </td>
-                    `;
+                        let netClass = net > 0 ? 'text-win' : (net < 0 ? 'text-loss' : '');
+                        let bgCellClass = isWinner ? 'kasa-cell-win' : 'kasa-cell-loss';
+                        let netPrefix = net > 0 ? '+' : '';
+
+                        playerCols += `
+                            <td>
+                                <div class="archive-pred-cell ${bgCellClass}">
+                                    <span class="archive-tahmin-val" style="font-size:10px;">${isWinner ? '👑 Kazandı' : '❌ Kaybetti'}</span>
+                                    <div class="archive-divider"></div>
+                                    <span class="${netClass}">${netPrefix}${net.toFixed(0)} TL</span>
+                                </div>
+                            </td>
+                        `;
+                    }
                 });
 
                 tbodyHtml += `
@@ -1695,7 +1755,7 @@
                         ${playerCols}
                         <td style="background:#fffbeb;">
                             <div class="archive-pred-cell">
-                                <span style="font-size:9px; color:#b45309; font-weight:700;">+100×${kaybedenSayisi} Kaybeden</span>
+                                <span style="font-size:9px; color:#b45309; font-weight:700;">+100×${kurucuKaybedenSayisi} Oyuncu</span>
                                 <div class="archive-divider"></div>
                                 <span class="text-kasa-amt">+${haftaKasaTutar} TL</span>
                             </div>
@@ -1706,7 +1766,7 @@
         }
 
         if (oynananHaftaSayisi === 0) {
-            tbodyHtml = `<tr><td colspan="6" style="padding:20px; color:#94a3b8; font-weight:bold;">Henüz tamamlanmış/oynanmış hafta verisi bulunmamaktadır.</td></tr>`;
+            tbodyHtml = `<tr><td colspan="7" style="padding:20px; color:#94a3b8; font-weight:bold;">Henüz tamamlanmış/oynanmış hafta verisi bulunmamaktadır.</td></tr>`;
         }
 
         document.getElementById('p8CombinedTableBody').innerHTML = tbodyHtml;
@@ -1750,7 +1810,7 @@
         const secilenHafta = document.getElementById('p3HaftaFilter').value;
         let tbody = "";
 
-        let oyuncuToplamPuanlar = { "Umut": 0, "ibrahim": 0, "Özkan": 0, "Onur": 0 };
+        let oyuncuToplamPuanlar = { "Umut": 0, "ibrahim": 0, "Özkan": 0, "Onur": 0, "Serkan": 0 };
 
         Object.keys(dbMaclar).forEach(mId => {
             const m = dbMaclar[mId];
