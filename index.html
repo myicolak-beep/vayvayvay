@@ -750,7 +750,12 @@
 
         <!-- ADMIN NOTU -->
         <div id="p3AdminNote" class="admin-archive-note hidden">
-            <b>⚙️ Admin Modu:</b> Aşağıdaki tabloda oyuncuların skor tahminlerini doğrudan düzenleyebilirsiniz. Bir oyuncunun tahminini silmek için her iki kutuyu da boş bırakın. Değişiklikleri kaydetmek için alttaki <b>"💾 Tahminleri Kaydet"</b> butonuna tıklayın.
+            <b>⚙️ Admin Modu:</b> Skor tahminleri, tahmin giriş süresi dolmadan (veya herkes tahminini tamamlamadan) önce <b>sizin için de gizlidir</b>. Süre dolduğunda aşağıdaki kutulardan tahminleri düzenleyebilirsiniz. Bir tahmini silmek için her iki kutuyu da boş bırakın.
+        </div>
+
+        <!-- ADMIN GİZLİ BİLGİ NOTU -->
+        <div id="p3AdminHiddenNote" class="admin-archive-note hidden" style="background:#fee2e2; border-color:#ef4444; color:#991b1b;">
+            🔒 <b>Bu hafta için tahminler henüz herkese açık değil.</b> Tahmin kilit saati dolduğunda veya tüm oyuncular tahminlerini tamamladığında tahminler otomatik olarak görünür ve düzenlenebilir hale gelir.
         </div>
 
         <div style="overflow-x:auto;">
@@ -1840,20 +1845,19 @@
     }
 
     /* =========================================================================
-       SAYFA 3: SEZON ARŞİVİ (ADMIN DÜZENLEME MODU DESTEKLİ)
+       SAYFA 3: SEZON ARŞİVİ
+       - Admin düzenleme modu: SADECE tahminler herkese açık olduğunda (kilit doldu
+         veya herkes girdi veya maç başladı) aktif olur.
+       - Tahminler açıklanmadan önce ADMIN dahil herkes aynı "Gizli" durumu görür.
        ========================================================================= */
     function renderPage3() {
         const secilenHafta = document.getElementById('p3HaftaFilter').value;
         const isAdmin = (currentUser === "Yonetici");
 
-        // Admin görünürlüğünü ayarla
-        const adminNote = document.getElementById('p3AdminNote');
-        const adminSaveBtn = document.getElementById('btnAdminSaveArchive');
-        if (adminNote) adminNote.classList.toggle('hidden', !isAdmin);
-        if (adminSaveBtn) adminSaveBtn.classList.toggle('hidden', !isAdmin);
-
         let tbody = "";
         let oyuncuToplamPuanlar = { "Umut": 0, "ibrahim": 0, "Özkan": 0, "Onur": 0, "Serkan": 0 };
+        let toplamDuzenlenebilirInput = 0;
+        let herhangiBirHaftaGorunur = false;
 
         Object.keys(dbMaclar).forEach(mId => {
             const m = dbMaclar[mId];
@@ -1868,6 +1872,11 @@
                 const haftaKilitli = isHaftaKilitli(m.hafta);
                 const herkesGirdiMi = isHerkesTahminGirdiMi(m.hafta);
 
+                // Herkesin görebileceği an (admin dahil) - hiçbir role özel ayrıcalık yok
+                const gosterilsinMi = herkesGirdiMi || haftaKilitli || macBasladi;
+
+                if (gosterilsinMi) herhangiBirHaftaGorunur = true;
+
                 let playerCols = "";
                 oyuncular.forEach(o => {
                     let hasPred = (dbTahminler[mId] && dbTahminler[mId][o] &&
@@ -1876,14 +1885,16 @@
                     let tEv = hasPred ? dbTahminler[mId][o].ev : "";
                     let tDep = hasPred ? dbTahminler[mId][o].dep : "";
 
+                    // Puan hesaplaması SADECE gösterim izni varsa yapılır (admin için de aynı)
                     let pVal = null;
-                    if (gercekEv !== "" && hasPred && tEv !== "" && tDep !== "") {
+                    if (gosterilsinMi && gercekEv !== "" && hasPred && tEv !== "" && tDep !== "") {
                         pVal = puanHesapla(m.ev, m.dep, parseInt(gercekEv), parseInt(gercekDep), parseInt(tEv), parseInt(tDep));
                         oyuncuToplamPuanlar[o] += pVal;
                     }
 
-                    // ===== ADMIN DÜZENLEME MODU =====
-                    if (isAdmin) {
+                    // ===== ADMIN DÜZENLEME MODU (yalnızca gösterim izni varsa) =====
+                    if (isAdmin && gosterilsinMi) {
+                        toplamDuzenlenebilirInput++;
                         let pStr = pVal !== null ? `+${pVal} P` : "-";
                         let pCls = (pVal !== null && pVal > 0) ? "archive-puan-val" : "archive-puan-val archive-puan-zero";
 
@@ -1903,44 +1914,46 @@
                         return;
                     }
 
-                    // ===== NORMAL OYUNCU GÖRÜNÜMÜ =====
-                    const gosterilsinMi = (o === currentUser) || herkesGirdiMi || haftaKilitli || macBasladi;
-
-                    let cellHtml = "";
+                    // ===== NORMAL GÖRÜNÜM (oyuncular ve admin tahminler açıklanmadan önce) =====
                     if (gosterilsinMi) {
                         if (hasPred) {
                             let tStr = `${tEv}-${tDep}`;
                             let pStr = pVal !== null ? `+${pVal} P` : "-";
                             let pCls = (pVal !== null && pVal > 0) ? "archive-puan-val" : "archive-puan-val archive-puan-zero";
-                            cellHtml = `
-                                <div class="archive-pred-cell">
-                                    <span class="archive-tahmin-val">${tStr}</span>
-                                    <div class="archive-divider"></div>
-                                    <span class="${pCls}">${pStr}</span>
-                                </div>
+                            playerCols += `
+                                <td style="padding:2px 3px;">
+                                    <div class="archive-pred-cell">
+                                        <span class="archive-tahmin-val">${tStr}</span>
+                                        <div class="archive-divider"></div>
+                                        <span class="${pCls}">${pStr}</span>
+                                    </div>
+                                </td>
                             `;
                         } else {
-                            cellHtml = `
-                                <div class="archive-pred-cell">
-                                    <span style="font-size:9px; color:#ef4444; font-weight:700;">Girilmedi</span>
-                                    <div class="archive-divider"></div>
-                                    <span class="archive-puan-val archive-puan-zero">0 P</span>
-                                </div>
+                            playerCols += `
+                                <td style="padding:2px 3px;">
+                                    <div class="archive-pred-cell">
+                                        <span style="font-size:9px; color:#ef4444; font-weight:700;">Girilmedi</span>
+                                        <div class="archive-divider"></div>
+                                        <span class="archive-puan-val archive-puan-zero">0 P</span>
+                                    </div>
+                                </td>
                             `;
                         }
                     } else {
+                        // ===== GİZLİ DURUM (ADMIN DAHİL) =====
                         let text = hasPred ? "🟢 Girildi" : "🔴 Girilmedi";
                         let color = hasPred ? "#16a34a" : "#ef4444";
-                        cellHtml = `
-                            <div class="archive-pred-cell">
-                                <span style="font-size:9px; font-weight:700; color:${color};">${text}</span>
-                                <div class="archive-divider"></div>
-                                <span class="archive-puan-val archive-puan-zero">Gizli</span>
-                            </div>
+                        playerCols += `
+                            <td style="padding:2px 3px;">
+                                <div class="archive-pred-cell">
+                                    <span style="font-size:9px; font-weight:700; color:${color};">${text}</span>
+                                    <div class="archive-divider"></div>
+                                    <span class="archive-puan-val archive-puan-zero">🔒 Gizli</span>
+                                </div>
+                            </td>
                         `;
                     }
-
-                    playerCols += `<td style="padding:2px 3px;">${cellHtml}</td>`;
                 });
 
                 tbody += `<tr>
@@ -1955,6 +1968,30 @@
 
         document.getElementById('p3TableBody').innerHTML = tbody;
 
+        // ===== ADMIN BİLGİ NOTLARI VE KAYDET BUTONU GÖRÜNÜRLÜĞÜ =====
+        const adminNote = document.getElementById('p3AdminNote');
+        const adminHiddenNote = document.getElementById('p3AdminHiddenNote');
+        const adminSaveBtn = document.getElementById('btnAdminSaveArchive');
+
+        if (isAdmin) {
+            if (toplamDuzenlenebilirInput > 0) {
+                // Düzenlenebilir tahminler var → admin modu aktif
+                if (adminNote) adminNote.classList.remove('hidden');
+                if (adminHiddenNote) adminHiddenNote.classList.add('hidden');
+                if (adminSaveBtn) adminSaveBtn.classList.remove('hidden');
+            } else {
+                // Hiçbir tahmin açıklanmamış → admin için de gizli
+                if (adminNote) adminNote.classList.add('hidden');
+                if (adminHiddenNote) adminHiddenNote.classList.remove('hidden');
+                if (adminSaveBtn) adminSaveBtn.classList.add('hidden');
+            }
+        } else {
+            if (adminNote) adminNote.classList.add('hidden');
+            if (adminHiddenNote) adminHiddenNote.classList.add('hidden');
+            if (adminSaveBtn) adminSaveBtn.classList.add('hidden');
+        }
+
+        // ===== FOOTER =====
         let tfootHtml = "";
         let filterLabel = secilenHafta === "TUMU" ? "TOPLAM SEZON PUANI" : `${secilenHafta.toUpperCase()} TOPLAMI`;
 
@@ -1984,6 +2021,8 @@
 
     /* =========================================================================
        ADMİN: Arşivden Oyuncu Tahminlerini Kaydetme
+       - Yalnızca görünür/düzenlenebilir inputları kaydeder.
+       - Gizli olan tahminlere dokunmaz.
        ========================================================================= */
     function adminSaveArchivePredictions() {
         if (currentUser !== "Yonetici") {
@@ -1992,7 +2031,10 @@
         }
 
         const inputs = document.querySelectorAll('.admin-edit-input');
-        if (inputs.length === 0) return;
+        if (inputs.length === 0) {
+            alert("Kaydedilecek düzenlenebilir tahmin bulunamadı.");
+            return;
+        }
 
         // Inputları maç ve oyuncu bazında grupla
         let groupedData = {};
