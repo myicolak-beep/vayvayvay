@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="tr">
 <head>
@@ -447,10 +446,38 @@
         .p2-rank-badge.leader-badge { background: #fef08a; color: #854d0e; border: 1px solid #fde047; font-weight: bold; }
         .p2-rank-badge.leader-badge strong { color: #854d0e; }
 
+        /* ADMIN ARŞİV DÜZENLEME INPUTLARI */
+        .admin-edit-input {
+            width: 32px;
+            height: 26px;
+            text-align: center;
+            font-weight: bold;
+            border: 1px solid #f59e0b;
+            border-radius: 4px;
+            font-size: 12px;
+            background: #fffbeb;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        .admin-edit-input:focus {
+            outline: 2px solid #f59e0b;
+            background: #ffffff;
+        }
+        .admin-archive-note {
+            background: #fef3c7;
+            border: 1px dashed #f59e0b;
+            padding: 8px 12px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            font-size: 12px;
+            color: #92400e;
+        }
+
         @media (max-width: 600px) {
             .archive-table { font-size: 9px; }
             .archive-table th { padding: 4px 1px; font-size: 9px; }
             .live-match-teams { font-size: 10px; }
+            .admin-edit-input { width: 26px; height: 22px; font-size: 10px; }
         }
     </style>
 </head>
@@ -575,9 +602,6 @@
                     <select id="adminAktifHafta" style="padding:4px;" onchange="onAdminHaftaChange()"></select>
                 </div>
                 <button type="button" onclick="adminHaftaGuncelle()" style="background:#d97706; color:white; padding:6px 12px;">Aktif Haftayı Kaydet</button>
-            </div>
-            <div>
-                <button type="button" onclick="resetTestData()" style="background:#ef4444; color:white; padding:6px 12px;" title="Tüm oyuncu tahminlerini ve onaylarını sıfırlar">🧹 Test Verilerini Temizle</button>
             </div>
         </div>
 
@@ -723,6 +747,12 @@
                 <span><b>P:</b> Kazanılan Puan</span>
             </div>
         </div>
+
+        <!-- ADMIN NOTU -->
+        <div id="p3AdminNote" class="admin-archive-note hidden">
+            <b>⚙️ Admin Modu:</b> Aşağıdaki tabloda oyuncuların skor tahminlerini doğrudan düzenleyebilirsiniz. Bir oyuncunun tahminini silmek için her iki kutuyu da boş bırakın. Değişiklikleri kaydetmek için alttaki <b>"💾 Tahminleri Kaydet"</b> butonuna tıklayın.
+        </div>
+
         <div style="overflow-x:auto;">
             <table id="excelTable" class="archive-table">
                 <thead>
@@ -742,6 +772,9 @@
                 <tfoot id="p3TableFoot"></tfoot>
             </table>
         </div>
+
+        <!-- ADMIN KAYDET BUTONU -->
+        <button type="button" id="btnAdminSaveArchive" onclick="adminSaveArchivePredictions()" class="btn-submit hidden" style="background-color:#d97706; margin-top:15px;">💾 Tahminleri Kaydet</button>
     </div>
 
     <!-- PUANLAMA KURALLARI -->
@@ -1806,15 +1839,25 @@
         document.getElementById('p8CombinedTableFoot').innerHTML = tfootHtml;
     }
 
+    /* =========================================================================
+       SAYFA 3: SEZON ARŞİVİ (ADMIN DÜZENLEME MODU DESTEKLİ)
+       ========================================================================= */
     function renderPage3() {
         const secilenHafta = document.getElementById('p3HaftaFilter').value;
-        let tbody = "";
+        const isAdmin = (currentUser === "Yonetici");
 
+        // Admin görünürlüğünü ayarla
+        const adminNote = document.getElementById('p3AdminNote');
+        const adminSaveBtn = document.getElementById('btnAdminSaveArchive');
+        if (adminNote) adminNote.classList.toggle('hidden', !isAdmin);
+        if (adminSaveBtn) adminSaveBtn.classList.toggle('hidden', !isAdmin);
+
+        let tbody = "";
         let oyuncuToplamPuanlar = { "Umut": 0, "ibrahim": 0, "Özkan": 0, "Onur": 0, "Serkan": 0 };
 
         Object.keys(dbMaclar).forEach(mId => {
             const m = dbMaclar[mId];
-            if(secilenHafta === "TUMU" || m.hafta === secilenHafta) {
+            if (secilenHafta === "TUMU" || m.hafta === secilenHafta) {
                 let gercekEv = (m.gEv !== undefined) ? m.gEv : "";
                 let gercekDep = (m.gDep !== undefined) ? m.gDep : "";
                 let gercekSkor = (gercekEv !== "") ? `${gercekEv}-${gercekDep}` : "-";
@@ -1827,26 +1870,48 @@
 
                 let playerCols = "";
                 oyuncular.forEach(o => {
-                    let hasPred = (dbTahminler[mId] && dbTahminler[mId][o] && dbTahminler[mId][o].ev !== "" && dbTahminler[mId][o].dep !== "");
-                    
+                    let hasPred = (dbTahminler[mId] && dbTahminler[mId][o] &&
+                                   dbTahminler[mId][o].ev !== "" && dbTahminler[mId][o].ev !== undefined);
+
+                    let tEv = hasPred ? dbTahminler[mId][o].ev : "";
+                    let tDep = hasPred ? dbTahminler[mId][o].dep : "";
+
+                    let pVal = null;
+                    if (gercekEv !== "" && hasPred && tEv !== "" && tDep !== "") {
+                        pVal = puanHesapla(m.ev, m.dep, parseInt(gercekEv), parseInt(gercekDep), parseInt(tEv), parseInt(tDep));
+                        oyuncuToplamPuanlar[o] += pVal;
+                    }
+
+                    // ===== ADMIN DÜZENLEME MODU =====
+                    if (isAdmin) {
+                        let pStr = pVal !== null ? `+${pVal} P` : "-";
+                        let pCls = (pVal !== null && pVal > 0) ? "archive-puan-val" : "archive-puan-val archive-puan-zero";
+
+                        playerCols += `
+                            <td style="padding:3px 2px;">
+                                <div class="archive-pred-cell">
+                                    <div style="display:flex; gap:2px; align-items:center; justify-content:center;">
+                                        <input type="number" min="0" class="admin-edit-input" data-mid="${mId}" data-player="${o}" data-type="ev" value="${tEv}">
+                                        <span style="color:#64748b; font-size:11px;">-</span>
+                                        <input type="number" min="0" class="admin-edit-input" data-mid="${mId}" data-player="${o}" data-type="dep" value="${tDep}">
+                                    </div>
+                                    <div class="archive-divider"></div>
+                                    <span class="${pCls}">${pStr}</span>
+                                </div>
+                            </td>
+                        `;
+                        return;
+                    }
+
+                    // ===== NORMAL OYUNCU GÖRÜNÜMÜ =====
                     const gosterilsinMi = (o === currentUser) || herkesGirdiMi || haftaKilitli || macBasladi;
 
                     let cellHtml = "";
-
-                    if(gosterilsinMi) {
-                        if(hasPred) {
-                            let t = dbTahminler[mId][o];
-                            let tStr = `${t.ev}-${t.dep}`;
-                            let pVal = null;
-
-                            if(gercekEv !== "") {
-                                pVal = puanHesapla(m.ev, m.dep, parseInt(gercekEv), parseInt(gercekDep), parseInt(t.ev), parseInt(t.dep));
-                                oyuncuToplamPuanlar[o] += pVal;
-                            }
-
+                    if (gosterilsinMi) {
+                        if (hasPred) {
+                            let tStr = `${tEv}-${tDep}`;
                             let pStr = pVal !== null ? `+${pVal} P` : "-";
                             let pCls = (pVal !== null && pVal > 0) ? "archive-puan-val" : "archive-puan-val archive-puan-zero";
-
                             cellHtml = `
                                 <div class="archive-pred-cell">
                                     <span class="archive-tahmin-val">${tStr}</span>
@@ -1892,7 +1957,7 @@
 
         let tfootHtml = "";
         let filterLabel = secilenHafta === "TUMU" ? "TOPLAM SEZON PUANI" : `${secilenHafta.toUpperCase()} TOPLAMI`;
-        
+
         let footerPlayerCols = "";
         oyuncular.forEach(o => {
             footerPlayerCols += `
@@ -1915,6 +1980,81 @@
         `;
 
         document.getElementById('p3TableFoot').innerHTML = tfootHtml;
+    }
+
+    /* =========================================================================
+       ADMİN: Arşivden Oyuncu Tahminlerini Kaydetme
+       ========================================================================= */
+    function adminSaveArchivePredictions() {
+        if (currentUser !== "Yonetici") {
+            alert("Bu işlem için yetkiniz yok!");
+            return;
+        }
+
+        const inputs = document.querySelectorAll('.admin-edit-input');
+        if (inputs.length === 0) return;
+
+        // Inputları maç ve oyuncu bazında grupla
+        let groupedData = {};
+        inputs.forEach(inp => {
+            const mId = inp.dataset.mid;
+            const player = inp.dataset.player;
+            const type = inp.dataset.type;
+            const val = inp.value.trim();
+
+            if (!groupedData[mId]) groupedData[mId] = {};
+            if (!groupedData[mId][player]) groupedData[mId][player] = {};
+            groupedData[mId][player][type] = val;
+        });
+
+        // Doğrulama: her tahmin için iki taraf da dolu ya da ikisi de boş olmalı
+        let eksikOlanlar = [];
+        Object.keys(groupedData).forEach(mId => {
+            Object.keys(groupedData[mId]).forEach(player => {
+                const ev = groupedData[mId][player].ev;
+                const dep = groupedData[mId][player].dep;
+                if ((ev === "" && dep !== "") || (ev !== "" && dep === "")) {
+                    const mac = dbMaclar[mId];
+                    const macStr = mac ? `${mac.ev} - ${mac.dep}` : mId;
+                    eksikOlanlar.push(`${player} → ${macStr}`);
+                }
+            });
+        });
+
+        if (eksikOlanlar.length > 0) {
+            alert("⚠️ Aşağıdaki tahminlerde sadece tek taraf doldurulmuş. Lütfen ya iki tarafı da doldurun ya da ikisini de boş bırakın:\n\n• " + eksikOlanlar.join("\n• "));
+            return;
+        }
+
+        const onay = confirm("Değiştirilen tahminleri kaydetmek istediğinize emin misiniz?\n\nBoş bırakılan tahminler silinecek.");
+        if (!onay) return;
+
+        let updates = {};
+        Object.keys(groupedData).forEach(mId => {
+            Object.keys(groupedData[mId]).forEach(player => {
+                const ev = groupedData[mId][player].ev;
+                const dep = groupedData[mId][player].dep;
+
+                if (ev === "" && dep === "") {
+                    // Her iki taraf da boşsa tahmini sil
+                    updates[`tahminler/${mId}/${player}`] = null;
+                } else {
+                    updates[`tahminler/${mId}/${player}/ev`] = ev;
+                    updates[`tahminler/${mId}/${player}/dep`] = dep;
+                }
+            });
+        });
+
+        const btn = document.getElementById('btnAdminSaveArchive');
+        if (btn) { btn.disabled = true; btn.innerText = "⏳ Kaydediliyor..."; }
+
+        db.ref().update(updates).then(() => {
+            alert("✅ Tahminler başarıyla güncellendi!");
+            if (btn) { btn.disabled = false; btn.innerText = "💾 Tahminleri Kaydet"; }
+        }).catch(err => {
+            alert("Hata: " + err.message);
+            if (btn) { btn.disabled = false; btn.innerText = "💾 Tahminleri Kaydet"; }
+        });
     }
 
     function renderPage4() {
@@ -2111,21 +2251,6 @@
             alert(`✅ ${secilenOyuncu} kullanıcısının şifresi başarıyla '1234' olarak sıfırlandı!`);
         }).catch(err => {
             alert("Şifre sıfırlanırken hata oluştu: " + err.message);
-        });
-    }
-
-    function resetTestData() {
-        const onay = confirm("⚠️ TÜM oyuncu tahminleri ve onay kilitleri silinecek. Emin misiniz?");
-        if(!onay) return;
-
-        Promise.all([
-            db.ref('tahminler').remove(),
-            db.ref('onaylar').remove()
-        ]).then(() => {
-            alert("🧹 Test verileri başarıyla temizlendi! Sayfa yenileniyor.");
-            location.reload();
-        }).catch(err => {
-            alert("Sıfırlama sırasında hata oluştu: " + err.message);
         });
     }
 </script>
