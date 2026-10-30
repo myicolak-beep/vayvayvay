@@ -3,12 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>Var Mısınız İddaaya</title>
     <!-- Firebase CDN -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js" defer></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js" defer></script>
     <!-- Chart.js CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
     <style>
         :root {
             --bg-color: #f0f4f8;
@@ -152,7 +155,6 @@
         .admin-edit-input:focus { outline: 2px solid #f59e0b; background: #ffffff; }
         .admin-archive-note { background: #fef3c7; border: 1px dashed #f59e0b; padding: 8px 12px; border-radius: 6px; margin-bottom: 10px; font-size: 12px; color: #92400e; }
 
-        /* ========== YENİ: İSTATİSTİK SAYFASI STİLLERİ ========== */
         .stat-row-highlight { background: #f8fafc; }
         .stat-table td { font-weight: 600; }
         .stat-table td:first-child { text-align: left; padding-left: 10px; font-weight: 700; color: #334155; background: #f1f5f9; }
@@ -169,8 +171,6 @@
         .compare-table td { font-size: 13px; }
         .compare-better-cell { background: #dcfce7 !important; color: #15803d; font-weight: 900; }
         .compare-worse-cell { background: #fee2e2 !important; color: #991b1b; font-weight: 700; }
-
-        .stat-medal { font-size: 15px; }
 
         @media (max-width: 600px) {
             .archive-table { font-size: 9px; }
@@ -243,7 +243,6 @@
         <button class="menu-item-btn" id="btnMenu5" onclick="selectPageFromMenu(5)">📊 Haftalık Özet</button>
         <button class="menu-item-btn" id="btnMenu8" onclick="selectPageFromMenu(8)">💰 Kasa & Borç Hesabı</button>
         <button class="menu-item-btn" id="btnMenu3" onclick="selectPageFromMenu(3)">Sezon Arşivi</button>
-        <!-- YENİ EKLENEN MENÜ ÖĞESİ -->
         <button class="menu-item-btn" id="btnMenu7" onclick="selectPageFromMenu(7)">📈 İstatistikler</button>
         <button class="menu-item-btn" id="btnMenu6" onclick="selectPageFromMenu(6)">📜 Puan Kuralları</button>
         <button class="menu-item-btn menu-item-admin hidden" id="btnMenu4" onclick="selectPageFromMenu(4)">⚙️ Admin Paneli</button>
@@ -428,16 +427,13 @@
         <button type="button" id="btnAdminSaveArchive" onclick="adminSaveArchivePredictions()" class="btn-submit hidden" style="background-color:#d97706; margin-top:15px;">💾 Tahminleri Kaydet</button>
     </div>
 
-    <!-- ============================================================ -->
-    <!-- YENİ EKLENEN SAYFA 7: İSTATİSTİKLER                          -->
-    <!-- ============================================================ -->
+    <!-- İSTATİSTİKLER -->
     <div id="page7" class="page-content hidden">
         <h3 style="text-align:center; margin-bottom:5px;">📈 Detaylı İstatistikler</h3>
         <p style="text-align:center; font-size:12px; color:#64748b; margin-bottom:20px;">
             Sezon boyunca oynanan tüm maçlardan otomatik hesaplanan istatistikler
         </p>
 
-        <!-- GENEL İSTATİSTİK TABLOSU -->
         <div class="chart-card" style="margin-top:0;">
             <h4 style="margin-bottom:15px; color:#1e293b; text-align:left;">📊 Oyuncu Bazlı Genel İstatistikler</h4>
             <div style="overflow-x:auto;">
@@ -457,7 +453,6 @@
             </div>
         </div>
 
-        <!-- OYUNCU KARŞILAŞTIRMA BÖLÜMÜ -->
         <div class="chart-card">
             <h4 style="margin-bottom:15px; color:#1e293b; text-align:left;">⚔️ Oyuncu Karşılaştırma (Head to Head)</h4>
             <p style="text-align:center; font-size:12px; color:gray; margin-bottom:15px;">İki oyuncuyu seçin ve istatistiklerini karşılaştırın.</p>
@@ -543,7 +538,9 @@
         appId: "1:679504886700:web:4d31c067938e8c1edb5809"
     };
 
-    firebase.initializeApp(firebaseConfig);
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
     const db = firebase.database();
 
     const big3 = ["Galatasaray", "Fenerbahçe", "Beşiktaş"];
@@ -572,7 +569,7 @@
     let timerInterval = null;
     let myChart = null;
     let winnerChartInstance = null;
-    let comparisonChartInstance = null; // YENİ
+    let comparisonChartInstance = null;
 
     document.addEventListener("DOMContentLoaded", () => { initApp(); });
 
@@ -673,7 +670,7 @@
             renderPage2();
             renderPage3();
             renderPage5();
-            renderPage7(); // YENİ
+            renderPage7();
             renderPage8();
             if (currentUser === "Yonetici") renderPage4();
         });
@@ -1466,15 +1463,10 @@
         db.ref(`sifreler/${secilenOyuncu}`).set({ sifre: "1234", sifreDegisti: false }).then(() => alert(`✅ ${secilenOyuncu} şifresi '1234' olarak sıfırlandı!`)).catch(err => alert("Hata: " + err.message));
     }
 
-    /* ================================================================
-       ========== YENİ EKLENEN İSTATİSTİK FONKSİYONLARI ================
-       ================================================================ */
-
     function renderPage7() {
         const stats = computeAllStats();
         renderStatsTable(stats);
         initComparisonSelects();
-        // Karşılaştırma sonucu zaten görünüyorsa yenile
         const resultBox = document.getElementById('comparisonResult');
         if (resultBox && resultBox.innerHTML.trim() !== "") {
             renderComparison();
@@ -1579,7 +1571,6 @@
             { key: 'enKotuHafta', label: '📉 En Kötü Hafta', suffix: '', higherBetter: null }
         ];
 
-        // Her satır için en iyi değeri bul (highlight için)
         let html = "";
         rows.forEach(r => {
             let values = oyuncular.map(o => stats[o][r.key]);
@@ -1604,7 +1595,7 @@
                 if (isNumericRow && maxVal !== null) {
                     let numVal = parseFloat(val) || 0;
                     isBest = (r.higherBetter && numVal === maxVal && maxVal > 0) ||
-                             (!r.higherBetter && numVal === maxVal && numVal > 0);
+                             (!r.higherBetter && numVal === maxVal && maxVal > 0);
                 }
 
                 let style = isBest ? 'background:#fef08a; color:#854d0e; font-weight:900;' : '';
@@ -1670,7 +1661,6 @@
 
             let p1Better = m.higherBetter ? (n1 > n2) : (n1 < n2);
             let p2Better = m.higherBetter ? (n2 > n1) : (n2 < n1);
-            let equal = (n1 === n2);
 
             if (p1Better) p1Score += m.weight;
             if (p2Better) p2Score += m.weight;
@@ -1729,12 +1719,10 @@
         const data1 = weeks.map(h => stats[p1].haftalikPuanlar[h] || 0);
         const data2 = weeks.map(h => stats[p2].haftalikPuanlar[h] || 0);
 
-        // Kümülatif toplam
         let cum1 = 0, cum2 = 0;
         const cumData1 = data1.map(v => cum1 += v);
         const cumData2 = data2.map(v => cum2 += v);
 
-        // Son oynanmış haftayı bul
         let lastPlayedWeek = -1;
         for (let i = 0; i < weeks.length; i++) {
             if (data1[i] > 0 || data2[i] > 0) lastPlayedWeek = i;
